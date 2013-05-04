@@ -24,6 +24,7 @@
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-network-d.a" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-system-d.a" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-window-d.a" />
+					<Add library="X11" />
 				</Linker>
 			</Target>
 			<Target title="Release">

@@ -21,14 +21,14 @@ int main( )
 	}
 
 	// Change the window title
-	pWindow->SetTitle( "Cool. We can now change the title of the window. Test: åäö ÅÄÖ" );
+	pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: åäö ÅÄÖ" );
 
 	// Create a timer and run a main loop for some time
 	Bit::Timer Timer;
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 2.0f )
+	while( Timer.GetLapsedTime( ) < 4.0f )
 	{
 		pWindow->DoEvents( );
 	}
