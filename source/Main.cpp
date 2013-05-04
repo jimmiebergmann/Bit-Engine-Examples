@@ -26,19 +26,18 @@ int main( )
 	}
 
 	// Change the window title
-	//pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: והצ ִֵײ" );
+	pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: והצ ִֵײ" );
+
 
 	// Create a timer and run a main loop for some time
 	Bit::Timer Timer;
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 3.0f )
+	while( Timer.GetLapsedTime( ) < 3.0f && pWindow->IsCreated( ) )
 	{
-		if( pWindow->DoEvents( ) != BIT_OK )
-		{
-		    break;
-		}
+		pWindow->DoEvents( );
+
 	}
 
 	// Destroy the window
