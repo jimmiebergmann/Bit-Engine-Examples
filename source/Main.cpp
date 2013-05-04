@@ -40,7 +40,7 @@ int main( )
 	delete pWindow;
 	pWindow = BIT_NULL;
 
-	
+
 	// Test the random function
 	Bit::SeedRandomizer( Bit::Timer::GetSystemTime( ) );
 	BIT_UINT32 RandomNumber = Bit::RandomizeNumber( 100, 150 );
@@ -48,7 +48,7 @@ int main( )
 	// Do some debug printing
 	bitTrace( "This is a random number: %i\n", RandomNumber );
 	bitTrace( "Closing the program.\n" );
-	
+
 	// We are done
 	return 0;
 }
