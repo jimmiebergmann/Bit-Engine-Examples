@@ -14,23 +14,31 @@ int main( )
 	Bit::Window * pWindow = new Bit::Window( );
 
 	// Create the window and check if it's created
-	if( pWindow->Create( Bit::Vector2_ui32( 800, 600 ), 32, "Hello World" ) != BIT_OK ||
+	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize | Bit::Window::Style_Close;
+
+	if( pWindow->Create( Bit::Vector2_ui32( 800, 600 ), 32, "Hello World", Style ) != BIT_OK ||
 		!pWindow->IsCreated( ) )
 	{
-		std::cout << "Can not create the window." << std::endl;
+		bitTrace( "Can not create the window." );
+
+		delete pWindow;
+		return 0;
 	}
 
 	// Change the window title
-	pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: åäö ÅÄÖ" );
+	//pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: åäö ÅÄÖ" );
 
 	// Create a timer and run a main loop for some time
 	Bit::Timer Timer;
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 4.0f )
+	while( Timer.GetLapsedTime( ) < 3.0f )
 	{
-		pWindow->DoEvents( );
+		if( pWindow->DoEvents( ) != BIT_OK )
+		{
+		    break;
+		}
 	}
 
 	// Destroy the window
