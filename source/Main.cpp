@@ -5,21 +5,22 @@
 #include <Bit/System/MemoryLeak.hpp>
 #include <iostream>
 
+
 int main( )
 {
 	// Initialize the memory leak detector
 	bitInitMemoryLeak( BIT_NULL );
 
 	// Declare a new window
-	Bit::Window * pWindow = new Bit::Window( );
+	Bit::Window * pWindow = Bit::CreateWindow( );
 
 	// Create the window and check if it's created
 	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize | Bit::Window::Style_Close;
 
-	if( pWindow->Create( Bit::Vector2_ui32( 800, 600 ), 32, "Hello World", Style ) != BIT_OK ||
-		!pWindow->IsCreated( ) )
+	if( pWindow->Open( Bit::Vector2_ui32( 800, 600 ), 32, "Hello World", Style ) != BIT_OK ||
+		!pWindow->IsOpen( ) )
 	{
-		bitTrace( "Can not create the window." );
+		bitTrace( "Can not open the window." );
 
 		delete pWindow;
 		return 0;
@@ -28,13 +29,12 @@ int main( )
 	// Change the window title
 	pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: åäö ÅÄÖ" );
 
-
 	// Create a timer and run a main loop for some time
 	Bit::Timer Timer;
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 3.0f && pWindow->IsCreated() )
+	while( Timer.GetLapsedTime( ) < 3.0f && pWindow->IsOpen( ) )
 	{
 	    // Sleep some
 	   // usleep( 10 );
@@ -43,13 +43,12 @@ int main( )
 	}
 
 	// Destroy the window
-	bitTrace( "Destroying the window.\n" );
-	pWindow->Destroy( );
+	bitTrace( "Closing window.\n" );
+	pWindow->Close( );
 
 	// Delete the window
 	delete pWindow;
 	pWindow = BIT_NULL;
-
 
 	// Test the random function
 	Bit::SeedRandomizer( Bit::Timer::GetSystemTime( ) );
