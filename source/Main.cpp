@@ -34,13 +34,16 @@ int main( )
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 3.0f && pWindow->IsCreated( ) )
+	while( Timer.GetLapsedTime( ) < 3.0f && pWindow->IsCreated() )
 	{
+	    // Sleep some
+	   // usleep( 10 );
+	    //bitTrace( "2\n" );
 		pWindow->DoEvents( );
-
 	}
 
 	// Destroy the window
+	bitTrace( "Destroying the window.\n" );
 	pWindow->Destroy( );
 
 	// Delete the window
