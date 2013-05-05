@@ -24,7 +24,7 @@ int main( )
 	}
 
 	// Create the style we want for the window
-	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize | Bit::Window::Style_Close;
+	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize |  Bit::Window::Style_Resize | Bit::Window::Style_Close;
 
 	// Open the window
 	if( pWindow->Open( Bit::Vector2_ui32( 800, 600 ), 32, "Hello World", Style ) != BIT_OK )
@@ -57,6 +57,59 @@ int main( )
 	{
 		// Do evenets
 		pWindow->DoEvents( );
+
+		Bit::Event Event;
+		while( pWindow->PollEvent( Event ) )
+		{
+			switch( Event.Type )
+			{
+				case Bit::Event::Close:
+				{
+					bitTrace( "[Event] Close\n" );
+				}
+				break;
+				case Bit::Event::Resize:
+				{
+					bitTrace( "[Event] Resize: %i %i\n",
+						Event.Size.x, Event.Size.y );
+				}
+				break;
+				case Bit::Event::Move:
+				{
+					bitTrace( "[Event] Moved: %i %i\n",
+						Event.Position.x, Event.Position.y );
+				}
+				break;
+				case Bit::Event::GainedFocus:
+				{
+					bitTrace( "[Event] Gained Focus\n" );
+				}
+				break;
+				case Bit::Event::LostFocus:
+				{
+					bitTrace( "[Event] Lost Focus\n" );
+				}
+				break;
+				case Bit::Event::MouseMoved:
+				{
+					bitTrace( "[Event] Mouse Moved: %i %i\n",
+						Event.MousePosition.x, Event.MousePosition.y );
+				}
+				break;
+				case Bit::Event::KeyPress:
+				{
+					bitTrace( "[Event] Key Press: %i\n", Event.Key );
+				}
+				break;
+				case Bit::Event::KeyRelease:
+				{
+					bitTrace( "[Event] Key Release: %i\n", Event.Key );
+				}
+				break;
+				default:
+					break;
+			}
+		}
 
 		// Clear the buffers
 		pGraphicDevice->ClearColor( );
