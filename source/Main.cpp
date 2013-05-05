@@ -53,7 +53,7 @@ int main( )
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 10.0f && pWindow->IsOpen( ) )
+	while( Timer.GetLapsedTime( ) < 17.0f && pWindow->IsOpen( ) )
 	{
 		// Do evenets
 		pWindow->DoEvents( );
@@ -61,23 +61,26 @@ int main( )
 		Bit::Event Event;
 		while( pWindow->PollEvent( Event ) )
 		{
+
+		    usleep( 1000 );
+
 			switch( Event.Type )
 			{
-				case Bit::Event::Close:
+				case Bit::Event::Closed:
 				{
-					bitTrace( "[Event] Close\n" );
+					bitTrace( "[Event] Closed\n" );
 				}
 				break;
-				case Bit::Event::Resize:
-				{
-					bitTrace( "[Event] Resize: %i %i\n",
-						Event.Size.x, Event.Size.y );
-				}
-				break;
-				case Bit::Event::Move:
+                case Bit::Event::Moved:
 				{
 					bitTrace( "[Event] Moved: %i %i\n",
 						Event.Position.x, Event.Position.y );
+				}
+				break;
+				case Bit::Event::Resized:
+				{
+					bitTrace( "[Event] Resized: %i %i\n",
+						Event.Size.x, Event.Size.y );
 				}
 				break;
 				case Bit::Event::GainedFocus:
@@ -90,20 +93,32 @@ int main( )
 					bitTrace( "[Event] Lost Focus\n" );
 				}
 				break;
+				case Bit::Event::KeyPressed:
+				{
+					bitTrace( "[Event] Key Pressed: %i\n", Event.Key );
+				}
+				break;
+				case Bit::Event::KeyReleased:
+				{
+					bitTrace( "[Event] Key Released: %i\n", Event.Key );
+				}
+				break;
 				case Bit::Event::MouseMoved:
 				{
 					bitTrace( "[Event] Mouse Moved: %i %i\n",
 						Event.MousePosition.x, Event.MousePosition.y );
 				}
 				break;
-				case Bit::Event::KeyPress:
+				case Bit::Event::MouseButtonPressed:
 				{
-					bitTrace( "[Event] Key Press: %i\n", Event.Key );
+					bitTrace( "[Event] Mouse Button Pressed: %i   %i %i\n",
+						Event.Button, Event.MousePosition.x, Event.MousePosition.y );
 				}
 				break;
-				case Bit::Event::KeyRelease:
+				case Bit::Event::MouseButtonReleased:
 				{
-					bitTrace( "[Event] Key Release: %i\n", Event.Key );
+					bitTrace( "[Event] Mouse Button Released: %i   %i %i\n",
+						Event.Button, Event.MousePosition.x, Event.MousePosition.y );
 				}
 				break;
 				default:
