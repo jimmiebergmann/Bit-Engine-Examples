@@ -1,54 +1,74 @@
-#include <Bit/Window.hpp>
+#include <Bit/Window/Window.hpp>
+#include <Bit/Graphics/GraphicDevice.hpp>
 #include <Bit/System/Timer.hpp>
 #include <Bit/System/Randomizer.hpp>
 #include <Bit/System/Debugger.hpp>
 #include <Bit/System/MemoryLeak.hpp>
 #include <iostream>
 
+Bit::Window * pWindow = BIT_NULL;
+Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
+
+int CloseApplication( const std::string p_Message, const int p_Code );
 
 int main( )
 {
 	// Initialize the memory leak detector
 	bitInitMemoryLeak( BIT_NULL );
 
-	// Declare a new window
-	Bit::Window * pWindow = Bit::CreateWindow( );
 
-	// Create the window and check if it's created
-	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize | Bit::Window::Style_Close;
-
-	if( pWindow->Open( Bit::Vector2_ui32( 800, 600 ), 32, "Hello World", Style ) != BIT_OK ||
-		!pWindow->IsOpen( ) )
+	// Create a window
+	if( ( pWindow = Bit::CreateWindow( ) ) == BIT_NULL )
 	{
-		bitTrace( "Can not open the window." );
-
-		delete pWindow;
-		return 0;
+		return CloseApplication( "Can not create the window", 0 );
 	}
 
-	// Change the window title
+	// Create the style we want for the window
+	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize | Bit::Window::Style_Close;
+
+	// Open the window
+	if( pWindow->Open( Bit::Vector2_ui32( 800, 600 ), 32, "Hello World", Style ) != BIT_OK )
+	{
+		return CloseApplication( "Can not open the window", 0 );
+	}
+
+	// Change the window's title
 	pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: åäö ÅÄÖ" );
+
+	// Create a graphic device
+	if( ( pGraphicDevice = Bit::CreateGraphicDevice( ) ) == BIT_NULL )
+	{
+		return CloseApplication( "Can not create the graphic device", 0 );
+	}
+
+	// Open the graphic device
+	if( pGraphicDevice->Open( *pWindow, 0 ) != BIT_OK )
+	{
+		//return CloseApplication( "Can not open the graphic device", 0 );
+	}
+
 
 	// Create a timer and run a main loop for some time
 	Bit::Timer Timer;
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 3.0f && pWindow->IsOpen( ) )
+	while( Timer.GetLapsedTime( ) < 10.0f && pWindow->IsOpen( ) )
 	{
-	    // Sleep some
-	   // usleep( 10 );
-	    //bitTrace( "2\n" );
+		// Do evenets
 		pWindow->DoEvents( );
+
+		// Clear the buffers
+		pGraphicDevice->ClearColor( );
+		pGraphicDevice->ClearDepth( );
+
+		// Present the buffers
+		pGraphicDevice->Present( );
 	}
 
 	// Destroy the window
 	bitTrace( "Closing window.\n" );
 	pWindow->Close( );
-
-	// Delete the window
-	delete pWindow;
-	pWindow = BIT_NULL;
 
 	// Test the random function
 	Bit::SeedRandomizer( Bit::Timer::GetSystemTime( ) );
@@ -59,5 +79,30 @@ int main( )
 	bitTrace( "Closing the program.\n" );
 
 	// We are done
-	return 0;
+	return CloseApplication( "", 0 );
+}
+
+int CloseApplication( const std::string p_Message, const int p_Code )
+{
+	// Clean up the window and graphic device.
+	if( pWindow )
+	{
+		delete pWindow;
+		pWindow = BIT_NULL;
+	}
+
+	if( pGraphicDevice )
+	{
+		delete pGraphicDevice;
+		pGraphicDevice = BIT_NULL;
+	}
+
+	// Display the error message if any
+	if( p_Message.length( ) )
+	{
+		bitTrace( "[Error] %s\n", p_Message.c_str( ) );
+	}
+
+	// Return the code
+	return p_Code;
 }
