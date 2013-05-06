@@ -5,14 +5,20 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bit-Examples", "Bit-Example
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Release|Win32 = Release|Win32
+		Dynamic Debug|Win32 = Dynamic Debug|Win32
+		Dynamic Release|Win32 = Dynamic Release|Win32
+		Static Debug|Win32 = Static Debug|Win32
+		Static Release|Win32 = Static Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3EC61254-243A-4482-933A-242C24AF2D4B}.Debug|Win32.ActiveCfg = Debug|Win32
-		{3EC61254-243A-4482-933A-242C24AF2D4B}.Debug|Win32.Build.0 = Debug|Win32
-		{3EC61254-243A-4482-933A-242C24AF2D4B}.Release|Win32.ActiveCfg = Release|Win32
-		{3EC61254-243A-4482-933A-242C24AF2D4B}.Release|Win32.Build.0 = Release|Win32
+		{3EC61254-243A-4482-933A-242C24AF2D4B}.Dynamic Debug|Win32.ActiveCfg = Dynamic Debug|Win32
+		{3EC61254-243A-4482-933A-242C24AF2D4B}.Dynamic Debug|Win32.Build.0 = Dynamic Debug|Win32
+		{3EC61254-243A-4482-933A-242C24AF2D4B}.Dynamic Release|Win32.ActiveCfg = Dynamic Release|Win32
+		{3EC61254-243A-4482-933A-242C24AF2D4B}.Dynamic Release|Win32.Build.0 = Dynamic Release|Win32
+		{3EC61254-243A-4482-933A-242C24AF2D4B}.Static Debug|Win32.ActiveCfg = Static Release|Win32
+		{3EC61254-243A-4482-933A-242C24AF2D4B}.Static Debug|Win32.Build.0 = Static Release|Win32
+		{3EC61254-243A-4482-933A-242C24AF2D4B}.Static Release|Win32.ActiveCfg = Static Release|Win32
+		{3EC61254-243A-4482-933A-242C24AF2D4B}.Static Release|Win32.Build.0 = Static Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

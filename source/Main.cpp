@@ -2,6 +2,7 @@
 #include <Bit/Graphics/GraphicDevice.hpp>
 #include <Bit/System/Timer.hpp>
 #include <Bit/System/Randomizer.hpp>
+#include <Bit/System/Vector3.hpp>
 #include <Bit/System/Debugger.hpp>
 #include <Bit/System/MemoryLeak.hpp>
 #include <iostream>
@@ -15,7 +16,6 @@ int main( )
 {
 	// Initialize the memory leak detector
 	bitInitMemoryLeak( BIT_NULL );
-
 
 	// Create a window
 	if( ( pWindow = Bit::CreateWindow( ) ) == BIT_NULL )
@@ -44,7 +44,7 @@ int main( )
 	// Open the graphic device
 	if( pGraphicDevice->Open( *pWindow, 0 ) != BIT_OK )
 	{
-		//return CloseApplication( "Can not open the graphic device", 0 );
+		return CloseApplication( "Can not open the graphic device", 0 );
 	}
 
 
@@ -62,8 +62,8 @@ int main( )
 		while( pWindow->PollEvent( Event ) )
 		{
 
-		    usleep( 1000 );
-
+			//usleep( 1000 );
+/*
 			switch( Event.Type )
 			{
 				case Bit::Event::Closed:
@@ -123,7 +123,7 @@ int main( )
 				break;
 				default:
 					break;
-			}
+			}*/
 		}
 
 		// Clear the buffers
