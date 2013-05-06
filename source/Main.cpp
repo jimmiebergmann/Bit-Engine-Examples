@@ -47,6 +47,9 @@ int main( )
 		return CloseApplication( "Can not open the graphic device", 0 );
 	}
 
+	// Set the clear color
+	//pGraphicDevice->SetClearColor( 1.0f, 0.0f, 1.0f, 1.0f );
+
 
 	// Create a timer and run a main loop for some time
 	Bit::Timer Timer;
@@ -62,16 +65,15 @@ int main( )
 		while( pWindow->PollEvent( Event ) )
 		{
 
-			//usleep( 1000 );
-/*
 			switch( Event.Type )
 			{
 				case Bit::Event::Closed:
 				{
 					bitTrace( "[Event] Closed\n" );
+					break;
 				}
 				break;
-                case Bit::Event::Moved:
+               /* case Bit::Event::Moved:
 				{
 					bitTrace( "[Event] Moved: %i %i\n",
 						Event.Position.x, Event.Position.y );
@@ -92,13 +94,19 @@ int main( )
 				{
 					bitTrace( "[Event] Lost Focus\n" );
 				}
-				break;
+				break;*/
 				case Bit::Event::KeyPressed:
 				{
-					bitTrace( "[Event] Key Pressed: %i\n", Event.Key );
+					//bitTrace( "[Event] Key Pressed: %i\n", Event.Key );
+
+					// Pressed ESC key
+					if( Event.Key == 27 )
+					{
+						return CloseApplication( "", 0 );
+					}
 				}
 				break;
-				case Bit::Event::KeyReleased:
+				/*case Bit::Event::KeyReleased:
 				{
 					bitTrace( "[Event] Key Released: %i\n", Event.Key );
 				}
@@ -120,15 +128,15 @@ int main( )
 					bitTrace( "[Event] Mouse Button Released: %i   %i %i\n",
 						Event.Button, Event.MousePosition.x, Event.MousePosition.y );
 				}
-				break;
+				break;*/
 				default:
 					break;
-			}*/
+			}
 		}
 
 		// Clear the buffers
-		pGraphicDevice->ClearColor( );
-		pGraphicDevice->ClearDepth( );
+		//pGraphicDevice->ClearColor( );
+		//pGraphicDevice->ClearDepth( );
 
 		// Present the buffers
 		pGraphicDevice->Present( );
