@@ -1,5 +1,7 @@
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
+#include <Bit/Graphics/VertexObject.hpp>
+#include <Bit/Graphics/OpenGL/VertexObjectOpenGL.hpp>
 #include <Bit/System/Timer.hpp>
 #include <Bit/System/Randomizer.hpp>
 #include <Bit/System/Vector3.hpp>
@@ -9,6 +11,7 @@
 
 Bit::Window * pWindow = BIT_NULL;
 Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
+Bit::VertexObject * pVertexObject = BIT_NULL;
 
 int CloseApplication( const std::string p_Message, const int p_Code );
 
@@ -16,6 +19,8 @@ int main( )
 {
 	// Initialize the memory leak detector
 	bitInitMemoryLeak( BIT_NULL );
+
+
 
 	// Create a window
 	if( ( pWindow = Bit::CreateWindow( ) ) == BIT_NULL )
@@ -27,13 +32,16 @@ int main( )
 	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize |  Bit::Window::Style_Resize | Bit::Window::Style_Close;
 
 	// Open the window
-	if( pWindow->Open( Bit::Vector2_ui32( 800, 600 ), 32, "Hello World", Style ) != BIT_OK )
+	Bit::Vector2_ui32 WindowSize( 800, 600 );
+	if( pWindow->Open( WindowSize, 32, "Hello World", Style ) != BIT_OK )
 	{
 		return CloseApplication( "Can not open the window", 0 );
 	}
 
 	// Change the window's title
 	pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: åäö ÅÄÖ" );
+
+
 
 	// Create a graphic device
 	if( ( pGraphicDevice = Bit::CreateGraphicDevice( ) ) == BIT_NULL )
@@ -48,7 +56,43 @@ int main( )
 	}
 
 	// Set the clear color
-	//pGraphicDevice->SetClearColor( 1.0f, 0.0f, 1.0f, 1.0f );
+	pGraphicDevice->SetClearColor( 1.0f, 0.0f, 1.0f, 1.0f );
+	pGraphicDevice->SetViewport( 0, 0, WindowSize.x, WindowSize.y );
+
+
+
+	// Create a vertex object via the graphic device
+	if( ( pVertexObject = pGraphicDevice->CreateVertexObject( ) ) == BIT_NULL )
+	{
+		return CloseApplication( "Can not create the vertex object", 0 );
+	}
+
+	// Create vertex array
+	BIT_FLOAT32 VertexCoordData[ 9 ] =
+	{
+		100, 100, 0,	200, 100, 0,	200, 200, 0
+	};
+	BIT_FLOAT32 VertexTexData[ 6 ] =
+	{
+		0, 0,	1, 0,	1, 1
+	};
+
+	// Add vertex buffer
+	if( pVertexObject->AddVertexBuffer( VertexCoordData, 3 ) == BIT_ERROR )
+	{
+		return CloseApplication( "Can not add vertex coord data to the vertex object", 0 );
+	}
+	if( pVertexObject->AddVertexBuffer( VertexTexData, 2 ) == BIT_ERROR )
+	{
+		return CloseApplication( "Can not add vertex tex data to the vertex object", 0 );
+	}
+
+	// Load the vertex object
+	if( pVertexObject->Load( 1, 3 ) == BIT_ERROR )
+	{
+		return CloseApplication( "Can not load the vertex object", 0 );
+	}
+
 
 
 	// Create a timer and run a main loop for some time
@@ -59,7 +103,7 @@ int main( )
 	while( Timer.GetLapsedTime( ) < 17.0f && pWindow->IsOpen( ) )
 	{
 		// Do evenets
-		pWindow->DoEvents( );
+		pWindow->Update( );
 
 		Bit::Event Event;
 		while( pWindow->PollEvent( Event ) )
@@ -97,7 +141,7 @@ int main( )
 				break;*/
 				case Bit::Event::KeyPressed:
 				{
-					//bitTrace( "[Event] Key Pressed: %i\n", Event.Key );
+					bitTrace( "[Event] Key Pressed: %i\n", Event.Key );
 
 					// Pressed ESC key
 					if( Event.Key == 27 )
@@ -135,8 +179,12 @@ int main( )
 		}
 
 		// Clear the buffers
-		//pGraphicDevice->ClearColor( );
-		//pGraphicDevice->ClearDepth( );
+		pGraphicDevice->ClearColor( );
+		pGraphicDevice->ClearDepth( );
+
+		// Render the vertex object
+		// !NOTE! Wont be visible because of the lack of shaders!
+		pVertexObject->Render( Bit::VertexObject::RenderMode_Triangles );
 
 		// Present the buffers
 		pGraphicDevice->Present( );
@@ -161,10 +209,11 @@ int main( )
 int CloseApplication( const std::string p_Message, const int p_Code )
 {
 	// Clean up the window and graphic device.
-	if( pWindow )
+
+	if( pVertexObject )
 	{
-		delete pWindow;
-		pWindow = BIT_NULL;
+		delete pVertexObject;
+		pVertexObject = BIT_NULL;
 	}
 
 	if( pGraphicDevice )
@@ -173,6 +222,12 @@ int CloseApplication( const std::string p_Message, const int p_Code )
 		pGraphicDevice = BIT_NULL;
 	}
 
+	if( pWindow )
+	{
+		delete pWindow;
+		pWindow = BIT_NULL;
+	}
+	
 	// Display the error message if any
 	if( p_Message.length( ) )
 	{
