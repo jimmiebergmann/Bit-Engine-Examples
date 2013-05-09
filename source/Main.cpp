@@ -68,7 +68,7 @@ int main( )
 	}
 
 	// Create vertex array
-	BIT_FLOAT32 VertexCoordData[ 9 ] =
+	BIT_UINT32 VertexCoordData[ 9 ] =
 	{
 		100, 100, 0,	200, 100, 0,	200, 200, 0
 	};
@@ -78,13 +78,13 @@ int main( )
 	};
 
 	// Add vertex buffer
-	if( pVertexObject->AddVertexBuffer( VertexCoordData, 3 ) == BIT_ERROR )
+	if( pVertexObject->AddVertexBuffer( VertexCoordData, 3, BIT_TYPE_UINT32 ) == BIT_ERROR )
 	{
 		return CloseApplication( "Can not add vertex coord data to the vertex object", 0 );
 	}
-	if( pVertexObject->AddVertexBuffer( VertexTexData, 2 ) == BIT_ERROR )
+	if( pVertexObject->AddVertexBuffer( VertexTexData, 2, BIT_TYPE_FLOAT32 ) == BIT_ERROR )
 	{
-		return CloseApplication( "Can not add vertex tex data to the vertex object", 0 );
+		return CloseApplication( "Can not add vertex texture data to the vertex object", 0 );
 	}
 
 	// Load the vertex object
@@ -92,6 +92,17 @@ int main( )
 	{
 		return CloseApplication( "Can not load the vertex object", 0 );
 	}
+
+	// Update the tex coo buffer
+	BIT_FLOAT32 pNewData[ 6 ] =
+	{
+		1, 2, 3, 4, 5, 6
+	};
+	if( pVertexObject->UpdateVertexBuffer( 1, pNewData, 0, 6 ) == BIT_ERROR )
+	{
+		return CloseApplication( "Can not update vertex texture data.", 0 );
+	}
+
 
 
 
