@@ -34,7 +34,8 @@ int main( )
 	if( CreateWindow( ) != BIT_OK ||
 		CreateRenderer( ) != BIT_OK ||
 		CreateVertexObject( ) != BIT_OK ||
-		CreateShaders( ) != BIT_OK )
+		CreateShaders( ) != BIT_OK ||
+		CreateShaderProgram( ) != BIT_OK )
 	{
 		return CloseApplication( 0 );
 	}
@@ -192,7 +193,7 @@ BIT_UINT32 CreateWindow( )
 	// Create a window
 	if( ( pWindow = Bit::CreateWindow( ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the window" );
+		bitTrace( "[Error] Can not create the window\n" );
 		return BIT_ERROR;
 	}
 
@@ -202,7 +203,7 @@ BIT_UINT32 CreateWindow( )
 	// Open the window
 	if( pWindow->Open( WindowSize, 32, "Hello World", Style ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not open the window" );
+		bitTrace( "[Error] Can not open the window\n" );
 		return BIT_ERROR;
 	}
 
@@ -217,14 +218,14 @@ BIT_UINT32 CreateRenderer( )
 	// Create a graphic device
 	if( ( pGraphicDevice = Bit::CreateGraphicDevice( ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the graphic device" );
+		bitTrace( "[Error] Can not create the graphic device\n" );
 		return BIT_ERROR;
 	}
 
 	// Open the graphic device
 	if( pGraphicDevice->Open( *pWindow, 0 ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not open the graphic device" );
+		bitTrace( "[Error] Can not open the graphic device\n" );
 		return BIT_ERROR;
 	}
 
@@ -240,7 +241,7 @@ BIT_UINT32 CreateVertexObject( )
 	// Create a vertex object via the graphic device
 	if( ( pVertexObject = pGraphicDevice->CreateVertexObject( ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the vertex object" );
+		bitTrace( "[Error] Can not create the vertex object\n" );
 		return BIT_ERROR;
 	}
 
@@ -257,19 +258,19 @@ BIT_UINT32 CreateVertexObject( )
 	// Add vertex buffer
 	if( pVertexObject->AddVertexBuffer( VertexCoordData, 3, BIT_TYPE_UINT32 ) == BIT_ERROR )
 	{
-		bitTrace( "[Error] Can not add vertex coord data to the vertex object" );
+		bitTrace( "[Error] Can not add vertex coord data to the vertex object\n" );
 		return BIT_ERROR;
 	}
 	if( pVertexObject->AddVertexBuffer( VertexTexData, 2, BIT_TYPE_FLOAT32 ) == BIT_ERROR )
 	{
-		bitTrace( "[Error] Can not add vertex texture data to the vertex object" );
+		bitTrace( "[Error] Can not add vertex texture data to the vertex object\n" );
 		return BIT_ERROR;
 	}
 
 	// Load the vertex object
 	if( pVertexObject->Load( 1, 3 ) == BIT_ERROR )
 	{
-		bitTrace( "[Error] Can not load the vertex object" );
+		bitTrace( "[Error] Can not load the vertex object\n" );
 		return BIT_ERROR;
 	}
 
@@ -280,7 +281,7 @@ BIT_UINT32 CreateVertexObject( )
 	};
 	if( pVertexObject->UpdateVertexBuffer( 1, pNewData, 0, 6 ) == BIT_ERROR )
 	{
-		bitTrace( "[Error] Can not create the vertex object" );
+		bitTrace( "[Error] Can not create the vertex object\n" );
 		return BIT_ERROR;
 	}
 
@@ -292,12 +293,36 @@ BIT_UINT32 CreateShaders( )
 	// Craete the vertex and fragment shaders
 	if( ( pVertexShader = pGraphicDevice->CreateShader( Bit::Shader::Vertex ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the vertex shader via the graphic device" );
+		bitTrace( "[Error] Can not create the vertex shader via the graphic device\n" );
 		return BIT_ERROR;
 	}
 	if( ( pFragmentShader = pGraphicDevice->CreateShader( Bit::Shader::Fragment ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the vertex shader via the graphic device" );
+		bitTrace( "[Error] Can not create the vertex shader via the graphic device\n" );
+		return BIT_ERROR;
+	}
+
+	// Read the sources
+	if( pVertexShader->Read( "../../../Data/VertexShader.txt" ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not read the vertex shader file\n" );
+		return BIT_ERROR;
+	}
+	if( pFragmentShader->Read( "../../../Data/FragmentShader.txt" ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not read the fragment shader file\n" );
+		return BIT_ERROR;
+	}
+
+	// Compile the shaders
+	if( pVertexShader->Compile( ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not compile the vertex shader\n" );
+		return BIT_ERROR;
+	}
+	if( pFragmentShader->Compile( ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not compile the fragment shader\n" );
 		return BIT_ERROR;
 	}
 
