@@ -14,8 +14,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="-DBUILD_DEBUG" />
-					<Add option="-DPLATFORM_LINUX" />
+					<Add option="-D_DEBUG" />
 					<Add directory="../../../Bit-Engine/include" />
 				</Compiler>
 				<Linker>
@@ -25,6 +24,7 @@
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-system-d.a" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-window-d.a" />
 					<Add library="X11" />
+					<Add library="GL" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -34,8 +34,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-DBUILD_RELEASE" />
-					<Add option="-DPLATFORM_LINUX" />
+					<Add option="-DNDEBUG" />
 					<Add directory="../../../Bit-Engine/include" />
 				</Compiler>
 				<Linker>
@@ -45,6 +44,8 @@
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-network.a" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-system.a" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-window.a" />
+					<Add library="X11" />
+					<Add library="GL" />
 				</Linker>
 			</Target>
 		</Build>

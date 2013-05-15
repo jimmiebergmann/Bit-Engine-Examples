@@ -60,7 +60,6 @@ int main( )
 	pGraphicDevice->SetViewport( 0, 0, WindowSize.x, WindowSize.y );
 
 
-
 	// Create a vertex object via the graphic device
 	if( ( pVertexObject = pGraphicDevice->CreateVertexObject( ) ) == BIT_NULL )
 	{
@@ -105,13 +104,12 @@ int main( )
 
 
 
-
 	// Create a timer and run a main loop for some time
 	Bit::Timer Timer;
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 17.0f && pWindow->IsOpen( ) )
+	while( Timer.GetLapsedTime( ) < 16.0f && pWindow->IsOpen( ) )
 	{
 		// Do evenets
 		pWindow->Update( );
@@ -125,10 +123,10 @@ int main( )
 				case Bit::Event::Closed:
 				{
 					bitTrace( "[Event] Closed\n" );
-					break;
+					return CloseApplication( "", 0 );
 				}
 				break;
-               /* case Bit::Event::Moved:
+                case Bit::Event::Moved:
 				{
 					bitTrace( "[Event] Moved: %i %i\n",
 						Event.Position.x, Event.Position.y );
@@ -149,19 +147,19 @@ int main( )
 				{
 					bitTrace( "[Event] Lost Focus\n" );
 				}
-				break;*/
+				break;
 				case Bit::Event::KeyPressed:
 				{
 					bitTrace( "[Event] Key Pressed: %i\n", Event.Key );
 
 					// Pressed ESC key
-					if( Event.Key == 27 )
+					if( Event.Key == 27 || Event.Key == 65307 )
 					{
 						return CloseApplication( "", 0 );
 					}
 				}
 				break;
-				/*case Bit::Event::KeyReleased:
+				case Bit::Event::KeyReleased:
 				{
 					bitTrace( "[Event] Key Released: %i\n", Event.Key );
 				}
@@ -183,7 +181,7 @@ int main( )
 					bitTrace( "[Event] Mouse Button Released: %i   %i %i\n",
 						Event.Button, Event.MousePosition.x, Event.MousePosition.y );
 				}
-				break;*/
+				break;
 				default:
 					break;
 			}
@@ -238,7 +236,7 @@ int CloseApplication( const std::string p_Message, const int p_Code )
 		delete pWindow;
 		pWindow = BIT_NULL;
 	}
-	
+
 	// Display the error message if any
 	if( p_Message.length( ) )
 	{
