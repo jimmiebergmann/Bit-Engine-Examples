@@ -13,6 +13,7 @@ Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
 Bit::VertexObject * pVertexObject = BIT_NULL;
 Bit::Shader * pVertexShader = BIT_NULL;
 Bit::Shader * pFragmentShader = BIT_NULL;
+Bit::ShaderProgram * pShaderProgram = BIT_NULL;
 Bit::Vector2_ui32 WindowSize( 800, 600 );
 
 // Global functions
@@ -165,11 +166,15 @@ int CloseApplication( const int p_Code )
 		delete pVertexShader;
 		pVertexShader = BIT_NULL;
 	}
-
 	if( pFragmentShader )
 	{
 		delete pFragmentShader;
 		pFragmentShader = BIT_NULL;
+	}
+	if( pShaderProgram )
+	{
+		delete pShaderProgram;
+		pShaderProgram = BIT_NULL;
 	}
 
 	if( pGraphicDevice )
@@ -290,15 +295,15 @@ BIT_UINT32 CreateVertexObject( )
 
 BIT_UINT32 CreateShaders( )
 {
-	// Craete the vertex and fragment shaders
+	// Create the vertex and fragment shaders
 	if( ( pVertexShader = pGraphicDevice->CreateShader( Bit::Shader::Vertex ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the vertex shader via the graphic device\n" );
+		bitTrace( "[Error] Can not create the vertex shader\n" );
 		return BIT_ERROR;
 	}
 	if( ( pFragmentShader = pGraphicDevice->CreateShader( Bit::Shader::Fragment ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the vertex shader via the graphic device\n" );
+		bitTrace( "[Error] Can not create the vertex shader\n" );
 		return BIT_ERROR;
 	}
 
@@ -332,5 +337,41 @@ BIT_UINT32 CreateShaders( )
 
 BIT_UINT32 CreateShaderProgram( )
 {
+	// Create the vertex and fragment shaders
+	if( ( pShaderProgram = pGraphicDevice->CreateShaderProgram( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the shader program\n" );
+		return BIT_ERROR;
+	}
+
+	// Attach the shaders
+	if( pShaderProgram->AttachShaders( pVertexShader ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not attach the vertex shader\n" );
+		return BIT_ERROR;
+	}
+	if( pShaderProgram->AttachShaders( pFragmentShader ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not attach the fragment shader\n" );
+		return BIT_ERROR;
+	}
+
+	// Set attribute locations
+	pShaderProgram->SetAttributeLocation( "Position", 0 );
+	pShaderProgram->SetAttributeLocation( "Texture", 1 );
+	
+	// Link the shaders
+	std::string Validation = "";
+	if( pShaderProgram->Link( Validation ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not link the shaders: \n%s\n", Validation.c_str( ) );
+		return BIT_ERROR;
+	}
+
+	// Set uniforms
+	pShaderProgram->SetUniform1i( "Texture", 0 );
+	///pShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix", ProjectionMatrix );
+	///pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewMatrix );
+
 	return BIT_OK;
 }
