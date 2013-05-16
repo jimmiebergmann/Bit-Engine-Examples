@@ -21,11 +21,11 @@ int CloseApplication( const int p_Code );
 BIT_UINT32 CreateWindow( );
 BIT_UINT32 CreateGraphicDevice( );
 BIT_UINT32 CreateVertexObject( );
-BIT_UINT32 CreateShaders( );
+BIT_UINT32 CreateShaders( std::string p_Argv );
 BIT_UINT32 CreateShaderProgram( );
 
 // Main function
-int main( )
+int main( int argc, char ** argv )
 {
 	// Initialize the memory leak detector
 	bitInitMemoryLeak( BIT_NULL );
@@ -35,7 +35,7 @@ int main( )
 	if( CreateWindow( ) != BIT_OK ||
 		CreateGraphicDevice( ) != BIT_OK ||
 		CreateVertexObject( ) != BIT_OK ||
-		CreateShaders( ) != BIT_OK ||
+		CreateShaders( argv[ 0 ] ) != BIT_OK ||
 		CreateShaderProgram( ) != BIT_OK )
 	{
 		return CloseApplication( 0 );
@@ -47,7 +47,7 @@ int main( )
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 16.0f && pWindow->IsOpen( ) )
+	while( Timer.GetLapsedTime( ) < 4.0f && pWindow->IsOpen( ) )
 	{
 		// Do evenets
 		pWindow->Update( );
@@ -139,10 +139,6 @@ int main( )
 		// Present the buffers
 		pGraphicDevice->Present( );
 	}
-
-	// Destroy the window
-	bitTrace( "Closing window.\n" );
-	pWindow->Close( );
 
 	// Test the random function
 	Bit::SeedRandomizer( Bit::Timer::GetSystemTime( ) );
@@ -297,7 +293,7 @@ BIT_UINT32 CreateVertexObject( )
 	return BIT_OK;
 }
 
-BIT_UINT32 CreateShaders( )
+BIT_UINT32 CreateShaders( std::string p_Argv )
 {
 	// Create the vertex and fragment shaders
 	if( ( pVertexShader = pGraphicDevice->CreateShader( Bit::Shader::Vertex ) ) == BIT_NULL )
@@ -312,12 +308,13 @@ BIT_UINT32 CreateShaders( )
 	}
 
 	// Read the sources
-	if( pVertexShader->Read( "../../../Data/VertexShader.txt" ) != BIT_OK )
+	p_Argv.resize( p_Argv.size( ) - 14 );
+	if( pVertexShader->Read( p_Argv + "../../../Data/VertexShader.txt" ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not read the vertex shader file\n" );
 		return BIT_ERROR;
 	}
-	if( pFragmentShader->Read( "../../../Data/FragmentShader.txt" ) != BIT_OK )
+	if( pFragmentShader->Read( p_Argv + "../../../Data/FragmentShader.txt" ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not read the fragment shader file\n" );
 		return BIT_ERROR;
@@ -363,7 +360,7 @@ BIT_UINT32 CreateShaderProgram( )
 	// Set attribute locations
 	pShaderProgram->SetAttributeLocation( "Position", 0 );
 	pShaderProgram->SetAttributeLocation( "Texture", 1 );
-	
+
 	// Link the shaders
 	if( pShaderProgram->Link( ) != BIT_OK )
 	{
