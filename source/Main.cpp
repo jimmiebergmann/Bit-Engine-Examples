@@ -1,5 +1,6 @@
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
+#include <Bit/Graphics/Image.hpp>
 #include <Bit/System/Timer.hpp>
 #include <Bit/System.hpp>
 #include <Bit/System/Randomizer.hpp>
@@ -15,6 +16,7 @@ Bit::VertexObject * pVertexObject = BIT_NULL;
 Bit::Shader * pVertexShader = BIT_NULL;
 Bit::Shader * pFragmentShader = BIT_NULL;
 Bit::ShaderProgram * pShaderProgram = BIT_NULL;
+Bit::Image * pImage = BIT_NULL;
 Bit::Vector2_ui32 WindowSize( 800, 600 );
 
 // Global functions
@@ -24,6 +26,7 @@ BIT_UINT32 CreateGraphicDevice( );
 BIT_UINT32 CreateVertexObject( );
 BIT_UINT32 CreateShaders( std::string p_Argv );
 BIT_UINT32 CreateShaderProgram( );
+BIT_UINT32 CreateImage( );
 
 // Main function
 int main( int argc, char ** argv )
@@ -39,7 +42,8 @@ int main( int argc, char ** argv )
 		CreateGraphicDevice( ) != BIT_OK ||
 		CreateVertexObject( ) != BIT_OK ||
 		CreateShaders( argv[ 0 ] ) != BIT_OK ||
-		CreateShaderProgram( ) != BIT_OK )
+		CreateShaderProgram( ) != BIT_OK ||
+		CreateImage( ) != BIT_OK )
 	{
 		return CloseApplication( 0 );
 	}
@@ -157,10 +161,17 @@ int main( int argc, char ** argv )
 
 int CloseApplication( const int p_Code )
 {
-	if( pVertexObject )
+
+	if( pImage )
 	{
-		delete pVertexObject;
-		pVertexObject = BIT_NULL;
+		delete pImage;
+		pImage = BIT_NULL;
+	}
+
+	if( pFragmentShader )
+	{
+		delete pFragmentShader;
+		pFragmentShader = BIT_NULL;
 	}
 
 	if( pVertexShader )
@@ -168,15 +179,17 @@ int CloseApplication( const int p_Code )
 		delete pVertexShader;
 		pVertexShader = BIT_NULL;
 	}
-	if( pFragmentShader )
-	{
-		delete pFragmentShader;
-		pFragmentShader = BIT_NULL;
-	}
+
 	if( pShaderProgram )
 	{
 		delete pShaderProgram;
 		pShaderProgram = BIT_NULL;
+	}
+
+	if( pVertexObject )
+	{
+		delete pVertexObject;
+		pVertexObject = BIT_NULL;
 	}
 
 	if( pGraphicDevice )
@@ -382,6 +395,31 @@ BIT_UINT32 CreateShaderProgram( )
 	pShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix", ProjectionMatrix );
 	pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewMatrix );
 	pShaderProgram->Unbind( );
+
+	return BIT_OK;
+}
+
+BIT_UINT32 CreateImage( )
+{
+	// Allocate the image
+	pImage = new Bit::Image( );
+
+	// Open the image via a file
+	if( pImage->ReadFile( Bit::GetAbsolutePath( "../../../Data/Image.tga" ) ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not read the image file\n" );
+		return BIT_ERROR;
+	}
+
+	// Print image information
+	bitTrace( "[Note] Image: %i %i %i\n",
+		pImage->GetSize( ).x, pImage->GetSize( ).y, pImage->GetDepth( ) );
+
+	// Get the first pixel
+	Bit::Pixel Pixel = pImage->GetPixel( 0 );
+
+	bitTrace( "[Note] Pixel: %i %i %i %i\n",
+		Pixel.m_R, Pixel.m_G, Pixel.m_B, Pixel.m_A );
 
 	return BIT_OK;
 }
