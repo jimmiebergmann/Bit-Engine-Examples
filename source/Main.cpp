@@ -17,6 +17,7 @@ Bit::Shader * pVertexShader = BIT_NULL;
 Bit::Shader * pFragmentShader = BIT_NULL;
 Bit::ShaderProgram * pShaderProgram = BIT_NULL;
 Bit::Image * pImage = BIT_NULL;
+Bit::Texture * pTexture = BIT_NULL;
 Bit::Vector2_ui32 WindowSize( 800, 600 );
 
 // Global functions
@@ -27,6 +28,7 @@ BIT_UINT32 CreateVertexObject( );
 BIT_UINT32 CreateShaders( std::string p_Argv );
 BIT_UINT32 CreateShaderProgram( );
 BIT_UINT32 CreateImage( );
+BIT_UINT32 CreateTexture( );
 
 // Main function
 int main( int argc, char ** argv )
@@ -43,7 +45,8 @@ int main( int argc, char ** argv )
 		CreateVertexObject( ) != BIT_OK ||
 		CreateShaders( argv[ 0 ] ) != BIT_OK ||
 		CreateShaderProgram( ) != BIT_OK ||
-		CreateImage( ) != BIT_OK )
+		CreateImage( ) != BIT_OK ||
+		CreateTexture( ) != BIT_OK )
 	{
 		return CloseApplication( 0 );
 	}
@@ -140,7 +143,9 @@ int main( int argc, char ** argv )
 		// !NOTE! Wont be visible because of the lack of shaders!
 
 		pShaderProgram->Bind( );
+		pTexture->Bind( 0 );
 		pVertexObject->Render( Bit::VertexObject::RenderMode_Triangles );
+		pTexture->Unbind( );
 		pShaderProgram->Unbind( );
 
 		// Present the buffers
@@ -161,6 +166,11 @@ int main( int argc, char ** argv )
 
 int CloseApplication( const int p_Code )
 {
+	if( pTexture )
+	{
+		delete pTexture;
+		pTexture = BIT_NULL;
+	}
 
 	if( pImage )
 	{
@@ -253,6 +263,8 @@ BIT_UINT32 CreateGraphicDevice( )
 	pGraphicDevice->SetClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 	pGraphicDevice->SetViewport( 0, 0, WindowSize.x, WindowSize.y );
 	pGraphicDevice->EnableDepthTest( );
+	pGraphicDevice->EnableTexture( );
+	pGraphicDevice->EnableAlpha( );
 
 	return BIT_OK;
 }
@@ -267,13 +279,15 @@ BIT_UINT32 CreateVertexObject( )
 	}
 
 	// Create vertex array
-	BIT_FLOAT32 VertexCoordData[ 9 ] =
+	BIT_FLOAT32 VertexCoordData[ 18 ] =
 	{
-		100, 100, 0,	200, 100, 0,	200, 200, 0
+		100, 100, 0,	200, 100, 0,	200, 200, 0,
+		100, 100, 0,	200, 200, 0,	100, 200, 0
 	};
-	BIT_FLOAT32 VertexTexData[ 6 ] =
+	BIT_FLOAT32 VertexTexData[ 12 ] =
 	{
-		0, 0,	1, 0,	1, 1
+		1, 2,	3, 4,	5, 6,
+		1, 2,	3, 4,	5, 6
 	};
 
 	// Add vertex buffer
@@ -289,18 +303,19 @@ BIT_UINT32 CreateVertexObject( )
 	}
 
 	// Load the vertex object
-	if( pVertexObject->Load( 1, 3 ) == BIT_ERROR )
+	if( pVertexObject->Load( 2, 3 ) == BIT_ERROR )
 	{
 		bitTrace( "[Error] Can not load the vertex object\n" );
 		return BIT_ERROR;
 	}
 
 	// Update the tex coo buffer
-	BIT_FLOAT32 pNewData[ 6 ] =
+	BIT_FLOAT32 pNewData[ 12 ] =
 	{
-		1, 2, 3, 4, 5, 6
+		0, 0,	1, 0,	1, 1,
+		0, 0,	1, 1,	0, 1
 	};
-	if( pVertexObject->UpdateVertexBuffer( 1, pNewData, 0, 6 ) == BIT_ERROR )
+	if( pVertexObject->UpdateVertexBuffer( 1, pNewData, 0, 12 ) == BIT_ERROR )
 	{
 		bitTrace( "[Error] Can not create the vertex object\n" );
 		return BIT_ERROR;
@@ -420,6 +435,41 @@ BIT_UINT32 CreateImage( )
 
 	bitTrace( "[Note] Pixel: %i %i %i %i\n",
 		Pixel.m_R, Pixel.m_G, Pixel.m_B, Pixel.m_A );
+
+	return BIT_OK;
+}
+
+BIT_UINT32 CreateTexture( )
+{
+	// Create the texture
+	if( ( pTexture = pGraphicDevice->CreateTexture( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the texture\n" );
+		return BIT_ERROR;
+	}
+
+	// Load the texture
+	if( pTexture->Load( *pImage ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the texture\n" );
+		return BIT_ERROR;
+	}
+
+	// Set texture filers
+	Bit::Texture::eFilter Filters[ ] =
+	{
+		Bit::Texture::Filter_Min, Bit::Texture::Filter_Nearest,
+		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Nearest,
+		Bit::Texture::Filter_Wrap_X, Bit::Texture::Filter_Repeat,
+		Bit::Texture::Filter_Wrap_Y, Bit::Texture::Filter_Repeat,
+		Bit::Texture::Filter_None, Bit::Texture::Filter_None
+	};
+
+	if( pTexture->SetFilters( Filters ) )
+	{
+		bitTrace( "[Error] Can not set the texture filters\n" );
+		return BIT_ERROR;
+	}
 
 	return BIT_OK;
 }

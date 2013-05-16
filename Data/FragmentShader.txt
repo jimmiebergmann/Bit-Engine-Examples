@@ -9,10 +9,10 @@ void main(void)
 {
 	vec4 TexureColor = texture2D( Texture, out_Texture );
 	
-	/*if( TexureColor.a == 0.0 )
+	if( TexureColor.a == 0.0 )
 	{
 		discard;
-	}*/
+	}
 	
-	out_Color = vec4( 1.0, 1.0, 1.0, 1.0f ); //TexureColor;
+	out_Color = TexureColor;
 }
