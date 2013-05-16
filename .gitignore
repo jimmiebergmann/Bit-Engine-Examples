@@ -21,7 +21,6 @@ bin
 *.depend
 
 # Extra #
-*.tga
 *.png
 *.bmp
 *.wav
