@@ -1,6 +1,7 @@
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
 #include <Bit/System/Timer.hpp>
+#include <Bit/System.hpp>
 #include <Bit/System/Randomizer.hpp>
 #include <Bit/System/Vector3.hpp>
 #include <Bit/System/Debugger.hpp>
@@ -30,6 +31,8 @@ int main( int argc, char ** argv )
 	// Initialize the memory leak detector
 	bitInitMemoryLeak( BIT_NULL );
 
+	// Setting the absolute path in order to read files.
+	Bit::SetAbsolutePath( argv[ 0 ] );
 
 	// Initialize the application
 	if( CreateWindow( ) != BIT_OK ||
@@ -308,13 +311,12 @@ BIT_UINT32 CreateShaders( std::string p_Argv )
 	}
 
 	// Read the sources
-	p_Argv.resize( p_Argv.size( ) - 14 );
-	if( pVertexShader->Read( p_Argv + "../../../Data/VertexShader.txt" ) != BIT_OK )
+	if( pVertexShader->Read( Bit::GetAbsolutePath( "../../../Data/VertexShader.txt" ) ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not read the vertex shader file\n" );
 		return BIT_ERROR;
 	}
-	if( pFragmentShader->Read( p_Argv + "../../../Data/FragmentShader.txt" ) != BIT_OK )
+	if( pFragmentShader->Read(Bit::GetAbsolutePath( "../../../Data/FragmentShader.txt" ) ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not read the fragment shader file\n" );
 		return BIT_ERROR;
