@@ -19,7 +19,7 @@ Bit::Vector2_ui32 WindowSize( 800, 600 );
 // Global functions
 int CloseApplication( const int p_Code );
 BIT_UINT32 CreateWindow( );
-BIT_UINT32 CreateRenderer( );
+BIT_UINT32 CreateGraphicDevice( );
 BIT_UINT32 CreateVertexObject( );
 BIT_UINT32 CreateShaders( );
 BIT_UINT32 CreateShaderProgram( );
@@ -33,7 +33,7 @@ int main( )
 
 	// Initialize the application
 	if( CreateWindow( ) != BIT_OK ||
-		CreateRenderer( ) != BIT_OK ||
+		CreateGraphicDevice( ) != BIT_OK ||
 		CreateVertexObject( ) != BIT_OK ||
 		CreateShaders( ) != BIT_OK ||
 		CreateShaderProgram( ) != BIT_OK )
@@ -102,12 +102,12 @@ int main( )
 					bitTrace( "[Event] Key Released: %i\n", Event.Key );
 				}
 				break;
-				case Bit::Event::MouseMoved:
+				/*case Bit::Event::MouseMoved:
 				{
 					bitTrace( "[Event] Mouse Moved: %i %i\n",
 						Event.MousePosition.x, Event.MousePosition.y );
 				}
-				break;
+				break;*/
 				case Bit::Event::MouseButtonPressed:
 				{
 					bitTrace( "[Event] Mouse Button Pressed: %i   %i %i\n",
@@ -131,7 +131,10 @@ int main( )
 
 		// Render the vertex object
 		// !NOTE! Wont be visible because of the lack of shaders!
+
+		pShaderProgram->Bind( );
 		pVertexObject->Render( Bit::VertexObject::RenderMode_Triangles );
+		pShaderProgram->Unbind( );
 
 		// Present the buffers
 		pGraphicDevice->Present( );
@@ -218,7 +221,7 @@ BIT_UINT32 CreateWindow( )
 	return BIT_OK;
 }
 
-BIT_UINT32 CreateRenderer( )
+BIT_UINT32 CreateGraphicDevice( )
 {
 	// Create a graphic device
 	if( ( pGraphicDevice = Bit::CreateGraphicDevice( ) ) == BIT_NULL )
@@ -235,8 +238,9 @@ BIT_UINT32 CreateRenderer( )
 	}
 
 	// Set the clear color
-	pGraphicDevice->SetClearColor( 1.0f, 0.0f, 1.0f, 1.0f );
+	pGraphicDevice->SetClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 	pGraphicDevice->SetViewport( 0, 0, WindowSize.x, WindowSize.y );
+	pGraphicDevice->EnableDepthTest( );
 
 	return BIT_OK;
 }
@@ -251,7 +255,7 @@ BIT_UINT32 CreateVertexObject( )
 	}
 
 	// Create vertex array
-	BIT_UINT32 VertexCoordData[ 9 ] =
+	BIT_FLOAT32 VertexCoordData[ 9 ] =
 	{
 		100, 100, 0,	200, 100, 0,	200, 200, 0
 	};
@@ -261,7 +265,7 @@ BIT_UINT32 CreateVertexObject( )
 	};
 
 	// Add vertex buffer
-	if( pVertexObject->AddVertexBuffer( VertexCoordData, 3, BIT_TYPE_UINT32 ) == BIT_ERROR )
+	if( pVertexObject->AddVertexBuffer( VertexCoordData, 3, BIT_TYPE_FLOAT32 ) == BIT_ERROR )
 	{
 		bitTrace( "[Error] Can not add vertex coord data to the vertex object\n" );
 		return BIT_ERROR;
@@ -361,17 +365,24 @@ BIT_UINT32 CreateShaderProgram( )
 	pShaderProgram->SetAttributeLocation( "Texture", 1 );
 	
 	// Link the shaders
-	std::string Validation = "";
-	if( pShaderProgram->Link( Validation ) != BIT_OK )
+	if( pShaderProgram->Link( ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not link the shaders: \n%s\n", Validation.c_str( ) );
+		bitTrace( "[Error] Can not link the shader program\n" );
 		return BIT_ERROR;
 	}
 
 	// Set uniforms
+	Bit::Matrix4x4 ProjectionMatrix;
+	Bit::Matrix4x4 ViewMatrix;
+	ProjectionMatrix.Orthographic( 0.0f, WindowSize.x, 0.0f, WindowSize.y, -1.0f, 1.0f );
+	ViewMatrix.Identity( );
+
+	// Bind and finally set the uniforms
+	pShaderProgram->Bind( );
 	pShaderProgram->SetUniform1i( "Texture", 0 );
-	///pShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix", ProjectionMatrix );
-	///pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewMatrix );
+	pShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix", ProjectionMatrix );
+	pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewMatrix );
+	pShaderProgram->Unbind( );
 
 	return BIT_OK;
 }
