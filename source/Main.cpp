@@ -1,6 +1,7 @@
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
 #include <Bit/Graphics/Image.hpp>
+#include <Bit/Graphics/Model.hpp>
 #include <Bit/System/Timer.hpp>
 #include <Bit/System.hpp>
 #include <Bit/System/Randomizer.hpp>
@@ -18,6 +19,7 @@ Bit::Shader * pFragmentShader = BIT_NULL;
 Bit::ShaderProgram * pShaderProgram = BIT_NULL;
 Bit::Image * pImage = BIT_NULL;
 Bit::Texture * pTexture = BIT_NULL;
+Bit::Model * pModel = BIT_NULL;
 Bit::Vector2_ui32 WindowSize( 800, 600 );
 
 // Global functions
@@ -29,11 +31,12 @@ BIT_UINT32 CreateShaders( std::string p_Argv );
 BIT_UINT32 CreateShaderProgram( );
 BIT_UINT32 CreateImage( );
 BIT_UINT32 CreateTexture( );
+BIT_UINT32 CreateModel( );
 
 // Main function
 int main( int argc, char ** argv )
 {
-	// Initialize the memory leak detector
+	// Initialize the memory leak detector for Win32 only (ignored by default in linux)
 	bitInitMemoryLeak( BIT_NULL );
 
 	// Setting the absolute path in order to read files.
@@ -42,6 +45,7 @@ int main( int argc, char ** argv )
 	// Initialize the application
 	if( CreateWindow( ) != BIT_OK ||
 		CreateGraphicDevice( ) != BIT_OK ||
+		CreateModel( ) != BIT_OK ||
 		CreateVertexObject( ) != BIT_OK ||
 		CreateShaders( argv[ 0 ] ) != BIT_OK ||
 		CreateShaderProgram( ) != BIT_OK ||
@@ -57,7 +61,7 @@ int main( int argc, char ** argv )
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 4.0f && pWindow->IsOpen( ) )
+	while( Timer.GetLapsedTime( ) < 10.0f && pWindow->IsOpen( ) )
 	{
 		// Do evenets
 		pWindow->Update( );
@@ -164,8 +168,15 @@ int main( int argc, char ** argv )
 	return CloseApplication( 0 );
 }
 
+
 int CloseApplication( const int p_Code )
 {
+	if( pModel )
+	{
+		delete pModel;
+		pModel = BIT_NULL;
+	}
+
 	if( pTexture )
 	{
 		delete pTexture;
@@ -228,7 +239,8 @@ BIT_UINT32 CreateWindow( )
 	}
 
 	// Create the style we want for the window
-	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize |  Bit::Window::Style_Resize | Bit::Window::Style_Close;
+	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize |
+		/* Bit::Window::Style_Resize | */ Bit::Window::Style_Close;
 
 	// Open the window
 	if( pWindow->Open( WindowSize, 32, "Hello World", Style ) != BIT_OK )
@@ -278,16 +290,25 @@ BIT_UINT32 CreateVertexObject( )
 		return BIT_ERROR;
 	}
 
-	// Create vertex array
-	BIT_FLOAT32 VertexCoordData[ 18 ] =
+	// Load the vertex object via the model
+	if( pModel->LoadVertexObject( *pVertexObject ) != BIT_OK )
 	{
-		100, 100, 0,	200, 100, 0,	200, 200, 0,
-		100, 100, 0,	200, 200, 0,	100, 200, 0
+		bitTrace( "[Error] Can notload the vertex object\n" );
+		return BIT_ERROR;
+	}
+
+
+
+	// Create vertex array
+	/*BIT_FLOAT32 VertexCoordData[ 18 ] =
+	{
+		-1.0f, -1.0f, 0.0f,		1.0f, -1.0f, 0.0f,		1.0f, 1.0f, 0.0f,
+		-1.0f, -1.0f, 0.0f,		1.0f, 1.0f, 0.0f,		-1.0f, 1.0f, 0.0f
 	};
 	BIT_FLOAT32 VertexTexData[ 12 ] =
 	{
-		1, 2,	3, 4,	5, 6,
-		1, 2,	3, 4,	5, 6
+		0, 0,	1, 0,	1, 1,
+		0, 0,	1, 1,	0, 1
 	};
 
 	// Add vertex buffer
@@ -307,10 +328,10 @@ BIT_UINT32 CreateVertexObject( )
 	{
 		bitTrace( "[Error] Can not load the vertex object\n" );
 		return BIT_ERROR;
-	}
+	}*/
 
 	// Update the tex coo buffer
-	BIT_FLOAT32 pNewData[ 12 ] =
+	/*BIT_FLOAT32 pNewData[ 12 ] =
 	{
 		0, 0,	1, 0,	1, 1,
 		0, 0,	1, 1,	0, 1
@@ -319,7 +340,7 @@ BIT_UINT32 CreateVertexObject( )
 	{
 		bitTrace( "[Error] Can not create the vertex object\n" );
 		return BIT_ERROR;
-	}
+	}*/
 
 	return BIT_OK;
 }
@@ -339,12 +360,12 @@ BIT_UINT32 CreateShaders( std::string p_Argv )
 	}
 
 	// Read the sources
-	if( pVertexShader->Read( Bit::GetAbsolutePath( "../../../Data/VertexShader.txt" ) ) != BIT_OK )
+	if( pVertexShader->ReadFile( Bit::GetAbsolutePath( "../../../Data/VertexShader.txt" ) ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not read the vertex shader file\n" );
 		return BIT_ERROR;
 	}
-	if( pFragmentShader->Read(Bit::GetAbsolutePath( "../../../Data/FragmentShader.txt" ) ) != BIT_OK )
+	if( pFragmentShader->ReadFile(Bit::GetAbsolutePath( "../../../Data/FragmentShader.txt" ) ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not read the fragment shader file\n" );
 		return BIT_ERROR;
@@ -389,7 +410,7 @@ BIT_UINT32 CreateShaderProgram( )
 
 	// Set attribute locations
 	pShaderProgram->SetAttributeLocation( "Position", 0 );
-	pShaderProgram->SetAttributeLocation( "Texture", 1 );
+	pShaderProgram->SetAttributeLocation( "Normal", 1 );
 
 	// Link the shaders
 	if( pShaderProgram->Link( ) != BIT_OK )
@@ -401,12 +422,14 @@ BIT_UINT32 CreateShaderProgram( )
 	// Set uniforms
 	Bit::Matrix4x4 ProjectionMatrix;
 	Bit::Matrix4x4 ViewMatrix;
-	ProjectionMatrix.Orthographic( 0.0f, WindowSize.x, 0.0f, WindowSize.y, -1.0f, 1.0f );
+	ProjectionMatrix.Perspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y,
+		0.001f, 100.0f ); 
 	ViewMatrix.Identity( );
+	ViewMatrix.Translate( 0.0f, 0.0f, -3.2f );
 
 	// Bind and finally set the uniforms
 	pShaderProgram->Bind( );
-	pShaderProgram->SetUniform1i( "Texture", 0 );
+	//pShaderProgram->SetUniform1i( "Texture", 0 );
 	pShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix", ProjectionMatrix );
 	pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewMatrix );
 	pShaderProgram->Unbind( );
@@ -470,6 +493,35 @@ BIT_UINT32 CreateTexture( )
 		bitTrace( "[Error] Can not set the texture filters\n" );
 		return BIT_ERROR;
 	}
+
+	return BIT_OK;
+}
+
+BIT_UINT32 CreateModel( )
+{
+	// Allocate the image
+	pModel = new Bit::Model( );
+
+
+	BIT_UINT32 Status = BIT_OK;
+	if( ( Status = pModel->ReadFile( Bit::GetAbsolutePath( "../../../Data/monkey.obj" ) ) ) != BIT_OK )
+	{
+		if( Status == BIT_ERROR_OPEN_FILE )
+		{
+			bitTrace( "[Error] Can not open the file\n" );
+		}
+		else
+		{
+			bitTrace( "[Error] Can not read the model file\n" );
+		}
+
+		return BIT_ERROR;
+	}
+
+
+	bitTrace( "Model vertex count: %i\n", pModel->GetVertexCount( ) );
+	
+
 
 	return BIT_OK;
 }

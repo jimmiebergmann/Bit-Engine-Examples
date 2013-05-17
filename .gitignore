@@ -5,9 +5,9 @@ Lib
 lib
 Bin
 bin
+Ignore
 
 # Compiled #
-*.obj
 *.exe
 
 # Build #
