@@ -13,25 +13,26 @@
 // Global variables
 Bit::Window * pWindow = BIT_NULL;
 Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
+Bit::Model * pModel = BIT_NULL;
 Bit::VertexObject * pVertexObject = BIT_NULL;
 Bit::Shader * pVertexShader = BIT_NULL;
 Bit::Shader * pFragmentShader = BIT_NULL;
 Bit::ShaderProgram * pShaderProgram = BIT_NULL;
 Bit::Image * pImage = BIT_NULL;
 Bit::Texture * pTexture = BIT_NULL;
-Bit::Model * pModel = BIT_NULL;
 Bit::Vector2_ui32 WindowSize( 800, 600 );
 
 // Global functions
 int CloseApplication( const int p_Code );
 BIT_UINT32 CreateWindow( );
 BIT_UINT32 CreateGraphicDevice( );
+BIT_UINT32 CreateModel( );
+BIT_UINT32 CreateImage( );
+BIT_UINT32 CreateTexture( );
 BIT_UINT32 CreateVertexObject( );
 BIT_UINT32 CreateShaders( std::string p_Argv );
 BIT_UINT32 CreateShaderProgram( );
-BIT_UINT32 CreateImage( );
-BIT_UINT32 CreateTexture( );
-BIT_UINT32 CreateModel( );
+
 
 // Main function
 int main( int argc, char ** argv )
@@ -46,11 +47,11 @@ int main( int argc, char ** argv )
 	if( CreateWindow( ) != BIT_OK ||
 		CreateGraphicDevice( ) != BIT_OK ||
 		CreateModel( ) != BIT_OK ||
+		CreateImage( ) != BIT_OK ||
+		CreateTexture( ) != BIT_OK || 
 		CreateVertexObject( ) != BIT_OK ||
 		CreateShaders( argv[ 0 ] ) != BIT_OK ||
-		CreateShaderProgram( ) != BIT_OK ||
-		CreateImage( ) != BIT_OK ||
-		CreateTexture( ) != BIT_OK )
+		CreateShaderProgram( ) != BIT_OK )
 	{
 		return CloseApplication( 0 );
 	}
@@ -171,12 +172,6 @@ int main( int argc, char ** argv )
 
 int CloseApplication( const int p_Code )
 {
-	if( pModel )
-	{
-		delete pModel;
-		pModel = BIT_NULL;
-	}
-
 	if( pTexture )
 	{
 		delete pTexture;
@@ -211,6 +206,12 @@ int CloseApplication( const int p_Code )
 	{
 		delete pVertexObject;
 		pVertexObject = BIT_NULL;
+	}
+
+	if( pModel )
+	{
+		delete pModel;
+		pModel = BIT_NULL;
 	}
 
 	if( pGraphicDevice )
@@ -277,6 +278,91 @@ BIT_UINT32 CreateGraphicDevice( )
 	pGraphicDevice->EnableDepthTest( );
 	pGraphicDevice->EnableTexture( );
 	pGraphicDevice->EnableAlpha( );
+
+	return BIT_OK;
+}
+
+BIT_UINT32 CreateModel( )
+{
+	// Allocate the image
+	pModel = new Bit::Model( );
+
+	BIT_UINT32 Status = BIT_OK;
+	if( ( Status = pModel->ReadFile( Bit::GetAbsolutePath( "../../../Data/monkey.obj" ) ) ) != BIT_OK )
+	{
+		if( Status == BIT_ERROR_OPEN_FILE )
+		{
+			bitTrace( "[Error] Can not open the file\n" );
+		}
+		else
+		{
+			bitTrace( "[Error] Can not read the model file\n" );
+		}
+
+		return BIT_ERROR;
+	}
+
+	bitTrace( "Model vertex count: %i\n", pModel->GetVertexPositionCount( ) );
+
+	return BIT_OK;
+}
+
+BIT_UINT32 CreateImage( )
+{
+	// Allocate the image
+	pImage = new Bit::Image( );
+
+	// Open the image via a file
+	if( pImage->ReadFile( Bit::GetAbsolutePath( "../../../Data/Image.tga" ) ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not read the image file\n" );
+		return BIT_ERROR;
+	}
+
+	// Print image information
+	bitTrace( "[Note] Image: %i %i %i\n",
+		pImage->GetSize( ).x, pImage->GetSize( ).y, pImage->GetDepth( ) );
+
+	// Get the first pixel
+	Bit::Pixel Pixel = pImage->GetPixel( 0 );
+
+	bitTrace( "[Note] Pixel: %i %i %i %i\n",
+		Pixel.m_R, Pixel.m_G, Pixel.m_B, Pixel.m_A );
+
+	return BIT_OK;
+}
+
+BIT_UINT32 CreateTexture( )
+{
+	// Create the texture
+	if( ( pTexture = pGraphicDevice->CreateTexture( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the texture\n" );
+		return BIT_ERROR;
+	}
+
+	// Load the texture
+	if( pTexture->Load( *pImage ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the texture\n" );
+		return BIT_ERROR;
+	}
+
+	// Set texture filers
+	Bit::Texture::eFilter Filters[ ] =
+	{
+		Bit::Texture::Filter_Min, Bit::Texture::Filter_Nearest,
+		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Nearest,
+		Bit::Texture::Filter_Wrap_X, Bit::Texture::Filter_Repeat,
+		Bit::Texture::Filter_Wrap_Y, Bit::Texture::Filter_Repeat,
+		Bit::Texture::Filter_None, Bit::Texture::Filter_None
+	};
+
+	if( pTexture->SetFilters( Filters ) )
+	{
+		bitTrace( "[Error] Can not set the texture filters\n" );
+		return BIT_ERROR;
+	}
 
 	return BIT_OK;
 }
@@ -409,8 +495,23 @@ BIT_UINT32 CreateShaderProgram( )
 	}
 
 	// Set attribute locations
-	pShaderProgram->SetAttributeLocation( "Position", 0 );
-	pShaderProgram->SetAttributeLocation( "Normal", 1 );
+	BIT_UINT32 AttributeIndex = 0;
+	if( pModel->GetVertexPositionCount( ) )
+	{
+		pShaderProgram->SetAttributeLocation( "Position", AttributeIndex );
+		AttributeIndex++;
+	}
+	if( pModel->GetVertexTextureCount( ) )
+	{
+		pShaderProgram->SetAttributeLocation( "Texture", AttributeIndex );
+		AttributeIndex++;
+	}
+	if( pModel->GetVertexNormalCount( ) )
+	{
+		pShaderProgram->SetAttributeLocation( "Normal", AttributeIndex );
+		AttributeIndex++;
+	}
+	
 
 	// Link the shaders
 	if( pShaderProgram->Link( ) != BIT_OK )
@@ -433,95 +534,6 @@ BIT_UINT32 CreateShaderProgram( )
 	pShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix", ProjectionMatrix );
 	pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewMatrix );
 	pShaderProgram->Unbind( );
-
-	return BIT_OK;
-}
-
-BIT_UINT32 CreateImage( )
-{
-	// Allocate the image
-	pImage = new Bit::Image( );
-
-	// Open the image via a file
-	if( pImage->ReadFile( Bit::GetAbsolutePath( "../../../Data/Image.tga" ) ) != BIT_OK )
-	{
-		bitTrace( "[Error] Can not read the image file\n" );
-		return BIT_ERROR;
-	}
-
-	// Print image information
-	bitTrace( "[Note] Image: %i %i %i\n",
-		pImage->GetSize( ).x, pImage->GetSize( ).y, pImage->GetDepth( ) );
-
-	// Get the first pixel
-	Bit::Pixel Pixel = pImage->GetPixel( 0 );
-
-	bitTrace( "[Note] Pixel: %i %i %i %i\n",
-		Pixel.m_R, Pixel.m_G, Pixel.m_B, Pixel.m_A );
-
-	return BIT_OK;
-}
-
-BIT_UINT32 CreateTexture( )
-{
-	// Create the texture
-	if( ( pTexture = pGraphicDevice->CreateTexture( ) ) == BIT_NULL )
-	{
-		bitTrace( "[Error] Can not create the texture\n" );
-		return BIT_ERROR;
-	}
-
-	// Load the texture
-	if( pTexture->Load( *pImage ) != BIT_OK )
-	{
-		bitTrace( "[Error] Can not load the texture\n" );
-		return BIT_ERROR;
-	}
-
-	// Set texture filers
-	Bit::Texture::eFilter Filters[ ] =
-	{
-		Bit::Texture::Filter_Min, Bit::Texture::Filter_Nearest,
-		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Nearest,
-		Bit::Texture::Filter_Wrap_X, Bit::Texture::Filter_Repeat,
-		Bit::Texture::Filter_Wrap_Y, Bit::Texture::Filter_Repeat,
-		Bit::Texture::Filter_None, Bit::Texture::Filter_None
-	};
-
-	if( pTexture->SetFilters( Filters ) )
-	{
-		bitTrace( "[Error] Can not set the texture filters\n" );
-		return BIT_ERROR;
-	}
-
-	return BIT_OK;
-}
-
-BIT_UINT32 CreateModel( )
-{
-	// Allocate the image
-	pModel = new Bit::Model( );
-
-
-	BIT_UINT32 Status = BIT_OK;
-	if( ( Status = pModel->ReadFile( Bit::GetAbsolutePath( "../../../Data/monkey.obj" ) ) ) != BIT_OK )
-	{
-		if( Status == BIT_ERROR_OPEN_FILE )
-		{
-			bitTrace( "[Error] Can not open the file\n" );
-		}
-		else
-		{
-			bitTrace( "[Error] Can not read the model file\n" );
-		}
-
-		return BIT_ERROR;
-	}
-
-
-	bitTrace( "Model vertex count: %i\n", pModel->GetVertexCount( ) );
-	
-
 
 	return BIT_OK;
 }
