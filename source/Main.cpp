@@ -145,9 +145,15 @@ int main( int argc, char ** argv )
 		pGraphicDevice->ClearDepth( );
 
 		// Render the vertex object
-		// !NOTE! Wont be visible because of the lack of shaders!
-
 		pShaderProgram->Bind( );
+
+		// Update the view matrix. Rotate the model
+		Bit::Matrix4x4 ViewMatrix;
+		ViewMatrix.Identity( );
+		ViewMatrix.Translate( 0.0f, 0.0f, -3.2f );
+		ViewMatrix.RotateY( Timer.GetLapsedTime( ) * 100.0f );
+		pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewMatrix );
+
 		pTexture->Bind( 0 );
 		pVertexObject->Render( Bit::VertexObject::RenderMode_Triangles );
 		pTexture->Unbind( );

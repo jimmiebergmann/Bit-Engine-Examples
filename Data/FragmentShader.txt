@@ -14,5 +14,5 @@ void main(void)
 		discard;
 	}*/
 	
-	out_Color = vec4( out_Normal, 1.0 );//TexureColor;
+	out_Color = vec4( out_Normal, 0.5 );//TexureColor;
 }
