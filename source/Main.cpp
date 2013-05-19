@@ -6,6 +6,7 @@
 #include <Bit/System.hpp>
 #include <Bit/System/Randomizer.hpp>
 #include <Bit/System/Vector3.hpp>
+#include <Bit/System/Line.hpp>
 #include <Bit/System/Debugger.hpp>
 #include <Bit/System/MemoryLeak.hpp>
 #include <iostream>
@@ -37,6 +38,24 @@ BIT_UINT32 CreateShaderProgram( );
 // Main function
 int main( int argc, char ** argv )
 {
+	// Doing some tests:
+	Bit::Line Line1( Bit::Vector2_f32( 0.0f, 0.0f ), Bit::Vector2_f32( 0.0f, 100.0f ) );
+	Bit::Line Line2( Bit::Vector2_f32( -100.0f, 100.0f  ), Bit::Vector2_f32( 100.0f, 100.0f  ) );
+	Bit::Vector3_f32 Intersection;
+
+	if( Line1.IntersectionLine2( Line2, Intersection ) )
+	{
+		bitTrace( "Intersection: %f  %f  %f\n\n\n",
+			Intersection.x, Intersection.y, Intersection.z );
+	}
+	else
+	{
+		bitTrace( "Intersection: NONE\n\n\n" );
+	}
+	
+
+
+
 	// Initialize the memory leak detector for Win32 only (ignored by default in linux)
 	bitInitMemoryLeak( BIT_NULL );
 
