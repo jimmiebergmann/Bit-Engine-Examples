@@ -6,7 +6,12 @@
 #include <Bit/System.hpp>
 #include <Bit/System/Randomizer.hpp>
 #include <Bit/System/Vector3.hpp>
-#include <Bit/System/Line.hpp>
+#include <Bit/System/Line2.hpp>
+#include <Bit/System/Line3.hpp>
+#include <Bit/System/Circle.hpp>
+#include <Bit/System/Quad.hpp>
+#include <Bit/System/Sphere.hpp>
+#include <Bit/System/Box.hpp>
 #include <Bit/System/Debugger.hpp>
 #include <Bit/System/MemoryLeak.hpp>
 #include <iostream>
@@ -33,34 +38,20 @@ BIT_UINT32 CreateTexture( );
 BIT_UINT32 CreateVertexObject( );
 BIT_UINT32 CreateShaders( std::string p_Argv );
 BIT_UINT32 CreateShaderProgram( );
+void MathTests( );
 
 
 // Main function
 int main( int argc, char ** argv )
 {
-	// Doing some tests:
-	Bit::Line Line1( Bit::Vector2_f32( 0.0f, 0.0f ), Bit::Vector2_f32( 0.0f, 100.0f ) );
-	Bit::Line Line2( Bit::Vector2_f32( -100.0f, 100.0f  ), Bit::Vector2_f32( 100.0f, 100.0f  ) );
-	Bit::Vector3_f32 Intersection;
-
-	if( Line1.IntersectionLine2( Line2, Intersection ) )
-	{
-		bitTrace( "Intersection: %f  %f  %f\n\n\n",
-			Intersection.x, Intersection.y, Intersection.z );
-	}
-	else
-	{
-		bitTrace( "Intersection: NONE\n\n\n" );
-	}
-	
-
-
-
 	// Initialize the memory leak detector for Win32 only (ignored by default in linux)
 	bitInitMemoryLeak( BIT_NULL );
 
 	// Setting the absolute path in order to read files.
 	Bit::SetAbsolutePath( argv[ 0 ] );
+
+	// Do some math tests:
+	MathTests( );
 
 	// Initialize the application
 	if( CreateWindow( ) != BIT_OK ||
@@ -81,7 +72,7 @@ int main( int argc, char ** argv )
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 10.0f && pWindow->IsOpen( ) )
+	while( /*Timer.GetLapsedTime( ) < 10.0f &&*/ pWindow->IsOpen( ) )
 	{
 		// Do evenets
 		pWindow->Update( );
@@ -561,4 +552,39 @@ BIT_UINT32 CreateShaderProgram( )
 	pShaderProgram->Unbind( );
 
 	return BIT_OK;
+}
+
+void MathTests( )
+{
+	Bit::Line3 Line1( Bit::Vector3_f32( 0.0f, 0.0f, 0.0f ), Bit::Vector3_f32( 0.0f, 100.0f, 3.0f ) );
+	Bit::Line3 Line2( Bit::Vector3_f32( -100.0f, 100.0f, 0.0f ), Bit::Vector3_f32( 100.0f, 00.0f, 3.0f ) );
+	Bit::Vector3_f32 Point1( 0.0f, 50.0f, 1.5f );
+	Bit::Vector3_f32 Intersection;
+
+
+	// Line - Point
+	if( Line1.Intersection( Point1 ) )
+	{
+		bitTrace( "Line-Point Intersection: %f  %f  %f\n\n",
+			Point1.x, Point1.y, Point1.z );
+	}
+	else
+	{
+		bitTrace( "Line-Point Intersection: FALSE\n\n" );
+	}
+
+
+	// Line - Line
+	if( Line1.Intersection( Line2, Intersection ) )
+	{
+		bitTrace( "Line-Line Intersection: %f  %f  %f\n\n",
+			Intersection.x, Intersection.y, Intersection.z );
+	}
+	else
+	{
+		bitTrace( "Line-Line Intersection: FALSE\n\n" );
+	}
+
+
+
 }
