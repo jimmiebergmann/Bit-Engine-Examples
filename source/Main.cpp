@@ -1,45 +1,37 @@
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
 #include <Bit/Graphics/Image.hpp>
-#include <Bit/Graphics/Model.hpp>
+#include <Bit/Graphics/ModelOBJ.hpp>
+#include <Bit/Graphics/ShaderProgram.hpp>
 #include <Bit/System/Timer.hpp>
 #include <Bit/System.hpp>
-#include <Bit/System/Randomizer.hpp>
 #include <Bit/System/Vector3.hpp>
-#include <Bit/System/Line2.hpp>
-#include <Bit/System/Line3.hpp>
-#include <Bit/System/Circle.hpp>
-#include <Bit/System/Quad.hpp>
-#include <Bit/System/Sphere.hpp>
-#include <Bit/System/Box.hpp>
+#include <Bit/System/MatrixManager.hpp>
+#include <Bit/System/ResourceManager.hpp>
 #include <Bit/System/Debugger.hpp>
 #include <Bit/System/MemoryLeak.hpp>
-#include <iostream>
+#include <Camera.hpp>
 
 // Global variables
 Bit::Window * pWindow = BIT_NULL;
 Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
 Bit::Model * pModel = BIT_NULL;
-Bit::VertexObject * pVertexObject = BIT_NULL;
-Bit::Shader * pVertexShader = BIT_NULL;
-Bit::Shader * pFragmentShader = BIT_NULL;
-Bit::ShaderProgram * pShaderProgram = BIT_NULL;
-Bit::Image * pImage = BIT_NULL;
-Bit::Texture * pTexture = BIT_NULL;
-Bit::Vector2_ui32 WindowSize( 800, 600 );
+Bit::ShaderProgram * pShaderProgram_Model = BIT_NULL;
+Bit::Shader * pVertexShader_Model = BIT_NULL;
+Bit::Shader * pFragmentShader_Model = BIT_NULL;
+Bit::Vector2_ui32 WindowSize( 1600, 1000 );
+Bit::Vector2_si32 MousePosition( 0, 0 );
+Bit::Vector2_si32 OldMousePosition( 0, 0 );
+Camera Camera;
 
 // Global functions
 int CloseApplication( const int p_Code );
+void InitializeMatrixManager( );
+void InitializeCamera( );
 BIT_UINT32 CreateWindow( );
 BIT_UINT32 CreateGraphicDevice( );
 BIT_UINT32 CreateModel( );
-BIT_UINT32 CreateImage( );
-BIT_UINT32 CreateTexture( );
-BIT_UINT32 CreateVertexObject( );
-BIT_UINT32 CreateShaders( std::string p_Argv );
-BIT_UINT32 CreateShaderProgram( );
-void MathTests( );
-
+BIT_UINT32 CreateModelShader( );
 
 // Main function
 int main( int argc, char ** argv )
@@ -50,76 +42,110 @@ int main( int argc, char ** argv )
 	// Setting the absolute path in order to read files.
 	Bit::SetAbsolutePath( argv[ 0 ] );
 
-	// Do some math tests:
-	MathTests( );
+	// Initialize the matrix manager
+	InitializeMatrixManager( );
+
+	// Initialize the camera
+	InitializeCamera( );
 
 	// Initialize the application
 	if( CreateWindow( ) != BIT_OK ||
 		CreateGraphicDevice( ) != BIT_OK ||
-		CreateModel( ) != BIT_OK ||
-		CreateImage( ) != BIT_OK ||
-		CreateTexture( ) != BIT_OK || 
-		CreateVertexObject( ) != BIT_OK ||
-		CreateShaders( argv[ 0 ] ) != BIT_OK ||
-		CreateShaderProgram( ) != BIT_OK )
+		CreateModel( ) != BIT_OK  ||
+		CreateModelShader( ) != BIT_OK )
 	{
 		return CloseApplication( 0 );
 	}
 
-
 	// Create a timer and run a main loop for some time
+	BIT_FLOAT64 DeltaTime = 0.0f;
 	Bit::Timer Timer;
 	Timer.Start( );
 
 	// Run the main loop
-	while( /*Timer.GetLapsedTime( ) < 10.0f &&*/ pWindow->IsOpen( ) )
+	while( pWindow->IsOpen( ) )
 	{
+		// Get the delta time;
+		DeltaTime = Timer.GetLapsedTime( );
+		Timer.Start( );
+
 		// Do evenets
 		pWindow->Update( );
+
+		// Store the old mouse position
+		OldMousePosition = MousePosition;
 
 		Bit::Event Event;
 		while( pWindow->PollEvent( Event ) )
 		{
-
+			// Swtich the event type
 			switch( Event.Type )
 			{
 				case Bit::Event::Closed:
 				{
-					bitTrace( "[Event] Closed\n" );
+					// Close the application
 					return CloseApplication( 0 );
 				}
 				break;
                 case Bit::Event::Moved:
 				{
-					bitTrace( "[Event] Moved: %i %i\n",
-						Event.Position.x, Event.Position.y );
+					continue;
 				}
 				break;
 				case Bit::Event::Resized:
 				{
-					bitTrace( "[Event] Resized: %i %i\n",
-						Event.Size.x, Event.Size.y );
+					continue;
 				}
 				break;
 				case Bit::Event::GainedFocus:
 				{
-					bitTrace( "[Event] Gained Focus\n" );
+					continue;
 				}
 				break;
 				case Bit::Event::LostFocus:
 				{
-					bitTrace( "[Event] Lost Focus\n" );
+					continue;
 				}
 				break;
 				case Bit::Event::KeyPressed:
 				{
-					bitTrace( "[Event] Key Pressed: %i\n", Event.Key );
-
-					// Pressed ESC key
-					if( Event.Key == 27 || Event.Key == 65307 )
+					switch( Event.Key )
 					{
-						return CloseApplication( 0 );
+						// Movement keys
+						case 'W':
+						{
+							Camera.MoveForwards( );
+						}
+						break;
+						case 'S':
+						{
+							Camera.MoveBackwards( );
+						}
+						break;
+						case 'A':
+						{
+							Camera.MoveLeft( );
+						}
+						break;
+						case 'D':
+						{
+							Camera.MoveRight( );
+						}
+						break;
+
+						// Exit keys
+						case 27:
+						{
+							return CloseApplication( 0 );
+						}
+						break;
+						case 65307:
+						{
+							return CloseApplication( 0 );
+						}
+						break;
 					}
+
 				}
 				break;
 				case Bit::Event::KeyReleased:
@@ -127,22 +153,19 @@ int main( int argc, char ** argv )
 					bitTrace( "[Event] Key Released: %i\n", Event.Key );
 				}
 				break;
-				/*case Bit::Event::MouseMoved:
+				case Bit::Event::MouseMoved:
 				{
-					bitTrace( "[Event] Mouse Moved: %i %i\n",
-						Event.MousePosition.x, Event.MousePosition.y );
+					MousePosition = Event.MousePosition;
 				}
-				break;*/
+				break;
 				case Bit::Event::MouseButtonPressed:
 				{
-					bitTrace( "[Event] Mouse Button Pressed: %i   %i %i\n",
-						Event.Button, Event.MousePosition.x, Event.MousePosition.y );
+					continue;
 				}
 				break;
 				case Bit::Event::MouseButtonReleased:
 				{
-					bitTrace( "[Event] Mouse Button Released: %i   %i %i\n",
-						Event.Button, Event.MousePosition.x, Event.MousePosition.y );
+					continue;
 				}
 				break;
 				default:
@@ -150,84 +173,84 @@ int main( int argc, char ** argv )
 			}
 		}
 
+		// Update the camera angles
+		Bit::Vector2_f32 CameraDiffs;
+		CameraDiffs.x = (BIT_FLOAT32)MousePosition.x - (BIT_FLOAT32)OldMousePosition.x;
+		CameraDiffs.y = (BIT_FLOAT32)MousePosition.y - (BIT_FLOAT32)OldMousePosition.y;
+		if( CameraDiffs.y > 0.0f )
+		{
+			Camera.RotateUp( abs( CameraDiffs.y ) );
+		}
+		else if( CameraDiffs.y < 0.0f )
+		{
+			Camera.RotateDown( abs( CameraDiffs.y ) );
+		}
+		if( CameraDiffs.x > 0.0f  )
+		{
+			Camera.RotateRight( abs( CameraDiffs.x ) );
+		}
+		else if( CameraDiffs.x < 0.0f )
+		{
+			Camera.RotateLeft( abs( CameraDiffs.x ) );
+		}
+
+
 		// Clear the buffers
 		pGraphicDevice->ClearColor( );
 		pGraphicDevice->ClearDepth( );
 
-		// Render the vertex object
-		pShaderProgram->Bind( );
+		// Bind the model shader program
+		pShaderProgram_Model->Bind( );
 
-		// Update the view matrix. Rotate the model
-		Bit::Matrix4x4 ViewMatrix;
-		ViewMatrix.Identity( );
-		ViewMatrix.Translate( 0.0f, 0.0f, -3.2f );
-		ViewMatrix.RotateY( Timer.GetLapsedTime( ) * 100.0f );
-		pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewMatrix );
+		// Update the camera if needed
+		if( Camera.Update( DeltaTime ) )
+		{
+			pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix", Camera.GetMatrix( ) );
+		}
 
-		pTexture->Bind( 0 );
-		pVertexObject->Render( Bit::VertexObject::RenderMode_Triangles );
-		pTexture->Unbind( );
-		pShaderProgram->Unbind( );
+		// Render the model
+		pModel->Render( Bit::VertexObject::RenderMode_Triangles );
+
+		// Unbind the shader program
+		pShaderProgram_Model->Unbind( );
+
 
 		// Present the buffers
 		pGraphicDevice->Present( );
 	}
 
-	// Test the random function
-	Bit::SeedRandomizer( Bit::Timer::GetSystemTime( ) );
-	BIT_UINT32 RandomNumber = Bit::RandomizeNumber( 100, 150 );
-
-	// Do some debug printing
-	bitTrace( "This is a random number: %i\n", RandomNumber );
-	bitTrace( "Closing the program.\n" );
-
 	// We are done
+	bitTrace( "Closing the program.\n" );
 	return CloseApplication( 0 );
 }
 
-
 int CloseApplication( const int p_Code )
 {
-	if( pTexture )
-	{
-		delete pTexture;
-		pTexture = BIT_NULL;
-	}
-
-	if( pImage )
-	{
-		delete pImage;
-		pImage = BIT_NULL;
-	}
-
-	if( pFragmentShader )
-	{
-		delete pFragmentShader;
-		pFragmentShader = BIT_NULL;
-	}
-
-	if( pVertexShader )
-	{
-		delete pVertexShader;
-		pVertexShader = BIT_NULL;
-	}
-
-	if( pShaderProgram )
-	{
-		delete pShaderProgram;
-		pShaderProgram = BIT_NULL;
-	}
-
-	if( pVertexObject )
-	{
-		delete pVertexObject;
-		pVertexObject = BIT_NULL;
-	}
+	// Release the resource manager
+	Bit::ResourceManager::Release( );
 
 	if( pModel )
 	{
 		delete pModel;
 		pModel = BIT_NULL;
+	}
+
+	if( pShaderProgram_Model )
+	{
+		delete pShaderProgram_Model;
+		pShaderProgram_Model = BIT_NULL;
+	}
+
+	if( pVertexShader_Model )
+	{
+		delete pVertexShader_Model;
+		pVertexShader_Model = BIT_NULL;
+	}
+
+	if( pFragmentShader_Model )
+	{
+		delete pFragmentShader_Model;
+		pFragmentShader_Model = BIT_NULL;
 	}
 
 	if( pGraphicDevice )
@@ -244,6 +267,31 @@ int CloseApplication( const int p_Code )
 
 	// Return the code
 	return p_Code;
+}
+
+void InitializeMatrixManager( )
+{
+	// Projection
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Projection );
+	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 2.0f, 4000.0f ); 
+
+	// Model view
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_ModelView );
+	Bit::MatrixManager::LoadIdentity( );
+}
+
+void InitializeCamera( )
+{
+	Camera.SetPosition( Bit::Vector3_f32( 0.0f, 0.0f, 0.0f ) );
+	Camera.SetDirection( Bit::Vector3_f32( 0.0f, 0.0f, 1.0f ) );
+	Camera.SetMovementSpeed( 1000.0f );
+	Camera.SetEyeSpeed( 15.0f );
+	Camera.UpdateMatrix( );
+
+	// Set the matrix to the matrix manager
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_ModelView );
+	Bit::MatrixManager::SetMatrix( Camera.GetMatrix( ) );
+
 }
 
 BIT_UINT32 CreateWindow( )
@@ -295,16 +343,39 @@ BIT_UINT32 CreateGraphicDevice( )
 	pGraphicDevice->EnableTexture( );
 	pGraphicDevice->EnableAlpha( );
 
+	// Initialize the resource manager
+	Bit::Texture::eFilter TextureFilters[ ] =
+	{
+		Bit::Texture::Filter_Min, Bit::Texture::Filter_Linear,
+		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Linear,
+		Bit::Texture::Filter_Wrap_X, Bit::Texture::Filter_Repeat,
+		Bit::Texture::Filter_Wrap_Y, Bit::Texture::Filter_Repeat,
+		Bit::Texture::Filter_None, Bit::Texture::Filter_None
+	};
+
+	// Initialize the resource manager
+	if( Bit::ResourceManager::Initialize( pGraphicDevice, TextureFilters ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not initialize the resource manager\n" );
+		return BIT_ERROR;
+	}
+
 	return BIT_OK;
 }
 
 BIT_UINT32 CreateModel( )
 {
 	// Allocate the image
-	pModel = new Bit::Model( );
+	if( ( pModel = pGraphicDevice->CreateModel( Bit::Model::Model_OBJ ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the model\n" );
+	}
+
+	Bit::Timer Timer;
+	Timer.Start( );
 
 	BIT_UINT32 Status = BIT_OK;
-	if( ( Status = pModel->ReadFile( Bit::GetAbsolutePath( "../../../Data/monkey.obj" ) ) ) != BIT_OK )
+	if( ( Status = pModel->ReadFile( Bit::GetAbsolutePath( "../../../Data/Sponza/sponza2.obj").c_str( ) ) ) != BIT_OK )
 	{
 		if( Status == BIT_ERROR_OPEN_FILE )
 		{
@@ -318,273 +389,144 @@ BIT_UINT32 CreateModel( )
 		return BIT_ERROR;
 	}
 
-	bitTrace( "Model vertex count: %i\n", pModel->GetVertexPositionCount( ) );
-
-	return BIT_OK;
-}
-
-BIT_UINT32 CreateImage( )
-{
-	// Allocate the image
-	pImage = new Bit::Image( );
-
-	// Open the image via a file
-	if( pImage->ReadFile( Bit::GetAbsolutePath( "../../../Data/Image.tga" ) ) != BIT_OK )
+	// Load the model
+	BIT_UINT32 ModelVerteBits = 0;
+	Bit::Texture::eFilter TextureFilters[ ] =
 	{
-		bitTrace( "[Error] Can not read the image file\n" );
-		return BIT_ERROR;
-	}
-
-	// Print image information
-	bitTrace( "[Note] Image: %i %i %i\n",
-		pImage->GetSize( ).x, pImage->GetSize( ).y, pImage->GetDepth( ) );
-
-	// Get the first pixel
-	Bit::Pixel Pixel = pImage->GetPixel( 0 );
-
-	bitTrace( "[Note] Pixel: %i %i %i %i\n",
-		Pixel.m_R, Pixel.m_G, Pixel.m_B, Pixel.m_A );
-
-	return BIT_OK;
-}
-
-BIT_UINT32 CreateTexture( )
-{
-	// Create the texture
-	if( ( pTexture = pGraphicDevice->CreateTexture( ) ) == BIT_NULL )
-	{
-		bitTrace( "[Error] Can not create the texture\n" );
-		return BIT_ERROR;
-	}
-
-	// Load the texture
-	if( pTexture->Load( *pImage ) != BIT_OK )
-	{
-		bitTrace( "[Error] Can not load the texture\n" );
-		return BIT_ERROR;
-	}
-
-	// Set texture filers
-	Bit::Texture::eFilter Filters[ ] =
-	{
-		Bit::Texture::Filter_Min, Bit::Texture::Filter_Nearest,
-		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Nearest,
-		Bit::Texture::Filter_Wrap_X, Bit::Texture::Filter_Repeat,
-		Bit::Texture::Filter_Wrap_Y, Bit::Texture::Filter_Repeat,
 		Bit::Texture::Filter_None, Bit::Texture::Filter_None
 	};
-
-	if( pTexture->SetFilters( Filters ) )
+	if( pModel->Load( ModelVerteBits, TextureFilters ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not set the texture filters\n" );
+		bitTrace( "[Error] Can not load the model\n" );
 		return BIT_ERROR;
 	}
+
+	Timer.Stop( );
+	bitTrace( "Model load time: %f ms.\n", Timer.GetTime( ) * 1000.0f );
 
 	return BIT_OK;
 }
 
-BIT_UINT32 CreateVertexObject( )
+BIT_UINT32 CreateModelShader( )
 {
-	// Create a vertex object via the graphic device
-	if( ( pVertexObject = pGraphicDevice->CreateVertexObject( ) ) == BIT_NULL )
-	{
-		bitTrace( "[Error] Can not create the vertex object\n" );
-		return BIT_ERROR;
-	}
+	// Shader sources
+	static const std::string VertexSource =
+		"#version 330 \n"
+		"precision highp float; \n"
 
-	// Load the vertex object via the model
-	if( pModel->LoadVertexObject( *pVertexObject ) != BIT_OK )
-	{
-		bitTrace( "[Error] Can notload the vertex object\n" );
-		return BIT_ERROR;
-	}
+		"in vec3 Position; \n"
+		"in vec2 Texture; \n"
+		"in vec3 Normal; \n"
+		"out vec3 out_Position; \n"
+		"out vec2 out_Texture; \n"
+		"out vec3 out_Normal; \n"
+		
+		"uniform mat4 ProjectionMatrix; \n"
+		"uniform mat4 ViewMatrix; \n"
 
+		"void main(void) \n"
+		"{ \n"
+		"	gl_Position = ProjectionMatrix * ViewMatrix * vec4( Position, 1.0 ); \n"
+		"	out_Position = Position; \n"
+		"	out_Texture = Texture; \n"
+		"	out_Normal = Normal; \n"
+		"} \n";
 
+	static const std::string FragmentSource =
+		"#version 330 \n"
+		"precision highp float; \n"
 
-	// Create vertex array
-	/*BIT_FLOAT32 VertexCoordData[ 18 ] =
-	{
-		-1.0f, -1.0f, 0.0f,		1.0f, -1.0f, 0.0f,		1.0f, 1.0f, 0.0f,
-		-1.0f, -1.0f, 0.0f,		1.0f, 1.0f, 0.0f,		-1.0f, 1.0f, 0.0f
-	};
-	BIT_FLOAT32 VertexTexData[ 12 ] =
-	{
-		0, 0,	1, 0,	1, 1,
-		0, 0,	1, 1,	0, 1
-	};
+		"in vec3 out_Position; \n"
+		"in vec2 out_Texture; \n"
+		"in vec3 out_Normal; \n"
+		"out vec4 out_Color; \n"
 
-	// Add vertex buffer
-	if( pVertexObject->AddVertexBuffer( VertexCoordData, 3, BIT_TYPE_FLOAT32 ) == BIT_ERROR )
-	{
-		bitTrace( "[Error] Can not add vertex coord data to the vertex object\n" );
-		return BIT_ERROR;
-	}
-	if( pVertexObject->AddVertexBuffer( VertexTexData, 2, BIT_TYPE_FLOAT32 ) == BIT_ERROR )
-	{
-		bitTrace( "[Error] Can not add vertex texture data to the vertex object\n" );
-		return BIT_ERROR;
-	}
+		"uniform sampler2D DiffuseTexture; \n"
+		"uniform sampler2D NormalTexture; \n"
+		"uniform vec3 LightPosition; \n"
 
-	// Load the vertex object
-	if( pVertexObject->Load( 2, 3 ) == BIT_ERROR )
-	{
-		bitTrace( "[Error] Can not load the vertex object\n" );
-		return BIT_ERROR;
-	}*/
+		"void main(void) \n"
+		"{ \n"
+		"	vec4 DiffuseColor = texture2D( DiffuseTexture, out_Texture );\n"
 
-	// Update the tex coo buffer
-	/*BIT_FLOAT32 pNewData[ 12 ] =
-	{
-		0, 0,	1, 0,	1, 1,
-		0, 0,	1, 1,	0, 1
-	};
-	if( pVertexObject->UpdateVertexBuffer( 1, pNewData, 0, 12 ) == BIT_ERROR )
-	{
-		bitTrace( "[Error] Can not create the vertex object\n" );
-		return BIT_ERROR;
-	}*/
+		"	vec3 LightDirection = normalize( LightPosition - out_Position ); \n"
+		"	float DiffuseLight = max( dot( out_Normal, LightDirection ), 0.2 ); \n"
+		"	vec4 DiffuseLightVector = vec4( DiffuseLight, DiffuseLight, DiffuseLight, 1.0 ); \n"
 
-	return BIT_OK;
-}
+		"	out_Color = DiffuseColor * DiffuseLightVector; \n"
+		"} \n";
 
-BIT_UINT32 CreateShaders( std::string p_Argv )
-{
+	// Load the shaders
 	// Create the vertex and fragment shaders
-	if( ( pVertexShader = pGraphicDevice->CreateShader( Bit::Shader::Vertex ) ) == BIT_NULL )
+	if( ( pVertexShader_Model = pGraphicDevice->CreateShader( Bit::Shader::Vertex ) ) == BIT_NULL )
 	{
 		bitTrace( "[Error] Can not create the vertex shader\n" );
 		return BIT_ERROR;
 	}
-	if( ( pFragmentShader = pGraphicDevice->CreateShader( Bit::Shader::Fragment ) ) == BIT_NULL )
+	if( ( pFragmentShader_Model = pGraphicDevice->CreateShader( Bit::Shader::Fragment ) ) == BIT_NULL )
 	{
 		bitTrace( "[Error] Can not create the vertex shader\n" );
 		return BIT_ERROR;
 	}
 
-	// Read the sources
-	if( pVertexShader->ReadFile( Bit::GetAbsolutePath( "../../../Data/VertexShader.txt" ) ) != BIT_OK )
-	{
-		bitTrace( "[Error] Can not read the vertex shader file\n" );
-		return BIT_ERROR;
-	}
-	if( pFragmentShader->ReadFile(Bit::GetAbsolutePath( "../../../Data/FragmentShader.txt" ) ) != BIT_OK )
-	{
-		bitTrace( "[Error] Can not read the fragment shader file\n" );
-		return BIT_ERROR;
-	}
+	// Set the sources
+	pVertexShader_Model->SetSource( VertexSource );
+	pFragmentShader_Model->SetSource( FragmentSource );
 
 	// Compile the shaders
-	if( pVertexShader->Compile( ) != BIT_OK )
+	if( pVertexShader_Model->Compile( ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not compile the vertex shader\n" );
 		return BIT_ERROR;
 	}
-	if( pFragmentShader->Compile( ) != BIT_OK )
+	if( pFragmentShader_Model->Compile( ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not compile the fragment shader\n" );
 		return BIT_ERROR;
 	}
 
 
-	return BIT_OK;
-}
-
-BIT_UINT32 CreateShaderProgram( )
-{
-	// Create the vertex and fragment shaders
-	if( ( pShaderProgram = pGraphicDevice->CreateShaderProgram( ) ) == BIT_NULL )
+	// Create the shader program
+	if( ( pShaderProgram_Model = pGraphicDevice->CreateShaderProgram( ) ) == BIT_NULL )
 	{
 		bitTrace( "[Error] Can not create the shader program\n" );
 		return BIT_ERROR;
 	}
 
 	// Attach the shaders
-	if( pShaderProgram->AttachShaders( pVertexShader ) != BIT_OK )
+	if( pShaderProgram_Model->AttachShaders( pVertexShader_Model ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not attach the vertex shader\n" );
 		return BIT_ERROR;
 	}
-	if( pShaderProgram->AttachShaders( pFragmentShader ) != BIT_OK )
+	if( pShaderProgram_Model->AttachShaders( pFragmentShader_Model ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not attach the fragment shader\n" );
 		return BIT_ERROR;
 	}
 
 	// Set attribute locations
-	BIT_UINT32 AttributeIndex = 0;
-	if( pModel->GetVertexPositionCount( ) )
-	{
-		pShaderProgram->SetAttributeLocation( "Position", AttributeIndex );
-		AttributeIndex++;
-	}
-	if( pModel->GetVertexTextureCount( ) )
-	{
-		pShaderProgram->SetAttributeLocation( "Texture", AttributeIndex );
-		AttributeIndex++;
-	}
-	if( pModel->GetVertexNormalCount( ) )
-	{
-		pShaderProgram->SetAttributeLocation( "Normal", AttributeIndex );
-		AttributeIndex++;
-	}
-	
+	pShaderProgram_Model->SetAttributeLocation( "Position", 0 );
+	pShaderProgram_Model->SetAttributeLocation( "Texture", 1 );
+	pShaderProgram_Model->SetAttributeLocation( "Normal", 2 );
 
 	// Link the shaders
-	if( pShaderProgram->Link( ) != BIT_OK )
+	if( pShaderProgram_Model->Link( ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not link the shader program\n" );
 		return BIT_ERROR;
 	}
 
 	// Set uniforms
-	Bit::Matrix4x4 ProjectionMatrix;
-	Bit::Matrix4x4 ViewMatrix;
-	ProjectionMatrix.Perspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y,
-		0.001f, 100.0f ); 
-	ViewMatrix.Identity( );
-	ViewMatrix.Translate( 0.0f, 0.0f, -3.2f );
-
-	// Bind and finally set the uniforms
-	pShaderProgram->Bind( );
-	//pShaderProgram->SetUniform1i( "Texture", 0 );
-	pShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix", ProjectionMatrix );
-	pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewMatrix );
-	pShaderProgram->Unbind( );
-
+	pShaderProgram_Model->Bind( );
+	pShaderProgram_Model->SetUniform1i( "DiffuseTexture", 0 );
+	pShaderProgram_Model->SetUniform1i( "NormalTexture", 1 );
+	pShaderProgram_Model->SetUniformMatrix4x4f( "ProjectionMatrix",
+		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_Projection ) );
+	pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix",
+		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_ModelView ) );
+	pShaderProgram_Model->SetUniform3f( "LightPosition", 0.0f, 100.0f, 0.0f );
+	pShaderProgram_Model->Unbind( );
+	
 	return BIT_OK;
-}
-
-void MathTests( )
-{
-	Bit::Line3 Line1( Bit::Vector3_f32( 0.0f, 0.0f, 0.0f ), Bit::Vector3_f32( 0.0f, 100.0f, 3.0f ) );
-	Bit::Line3 Line2( Bit::Vector3_f32( -100.0f, 100.0f, 0.0f ), Bit::Vector3_f32( 100.0f, 00.0f, 3.0f ) );
-	Bit::Vector3_f32 Point1( 0.0f, 50.0f, 1.5f );
-	Bit::Vector3_f32 Intersection;
-
-
-	// Line - Point
-	if( Line1.Intersection( Point1 ) )
-	{
-		bitTrace( "Line-Point Intersection: %f  %f  %f\n\n",
-			Point1.x, Point1.y, Point1.z );
-	}
-	else
-	{
-		bitTrace( "Line-Point Intersection: FALSE\n\n" );
-	}
-
-
-	// Line - Line
-	if( Line1.Intersection( Line2, Intersection ) )
-	{
-		bitTrace( "Line-Line Intersection: %f  %f  %f\n\n",
-			Intersection.x, Intersection.y, Intersection.z );
-	}
-	else
-	{
-		bitTrace( "Line-Line Intersection: FALSE\n\n" );
-	}
-
-
-
 }

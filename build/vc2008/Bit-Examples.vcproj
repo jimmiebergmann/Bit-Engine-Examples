@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="../../include;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;BIT_STATIC_LIB;$(NOINHERIT)"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,6 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="../../include;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;BIT_STATIC_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -266,6 +267,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="../../include;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -318,6 +320,14 @@
 	<References>
 	</References>
 	<Files>
+		<File
+			RelativePath="..\..\source\Camera.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\include\Camera.hpp"
+			>
+		</File>
 		<File
 			RelativePath="..\..\source\Main.cpp"
 			>

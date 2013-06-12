@@ -6,6 +6,7 @@ lib
 Bin
 bin
 Ignore
+Data
 
 # Compiled #
 *.exe
@@ -21,6 +22,8 @@ Ignore
 *.depend
 
 # Extra #
+*.tga
+*.jpg
 *.png
 *.bmp
 *.wav
