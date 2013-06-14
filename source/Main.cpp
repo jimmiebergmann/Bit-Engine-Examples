@@ -21,8 +21,9 @@ Bit::Shader * pVertexShader_Model = BIT_NULL;
 Bit::Shader * pFragmentShader_Model = BIT_NULL;
 Bit::Vector2_ui32 WindowSize( 1600, 1000 );
 Bit::Vector2_si32 MousePosition( 0, 0 );
-Bit::Vector2_si32 OldMousePosition( 0, 0 );
+Bit::Vector2_si32 MouseLockPosition( 500, 500 );
 Camera Camera;
+
 
 // Global functions
 int CloseApplication( const int p_Code );
@@ -72,8 +73,12 @@ int main( int argc, char ** argv )
 		// Do evenets
 		pWindow->Update( );
 
-		// Store the old mouse position
-		OldMousePosition = MousePosition;
+		// Mouse lock
+		if( pWindow->IsFocused( ) )
+		{
+			MousePosition = pWindow->GetCursorScreenPosition(  );
+			pWindow->SetCursorPosition( MouseLockPosition );
+		}
 
 		Bit::Event Event;
 		while( pWindow->PollEvent( Event ) )
@@ -99,11 +104,13 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::GainedFocus:
 				{
+					pWindow->ShowCursor( BIT_FALSE );
 					continue;
 				}
 				break;
 				case Bit::Event::LostFocus:
 				{
+					pWindow->ShowCursor( BIT_TRUE );
 					continue;
 				}
 				break;
@@ -132,6 +139,31 @@ int main( int argc, char ** argv )
 							Camera.MoveRight( );
 						}
 						break;
+						// Culling
+						case 'Z':
+						{
+							pGraphicDevice->EnableFaceCulling( Bit::GraphicDevice::Culling_BackFace );
+						}
+						break;
+						case 'X':
+						{
+							pGraphicDevice->EnableFaceCulling( Bit::GraphicDevice::Culling_FrontFace );
+						}
+						break;
+						// Mouse visibility
+						case 'C':
+						{
+							pWindow->ShowCursor( BIT_TRUE );
+						}
+						break;
+						case 'V':
+						{
+							pWindow->ShowCursor( BIT_FALSE );
+						}
+						break;
+
+						
+
 
 						// Exit keys
 						case 27:
@@ -155,7 +187,7 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::MouseMoved:
 				{
-					MousePosition = Event.MousePosition;
+					continue;
 				}
 				break;
 				case Bit::Event::MouseButtonPressed:
@@ -173,10 +205,11 @@ int main( int argc, char ** argv )
 			}
 		}
 
+
 		// Update the camera angles
 		Bit::Vector2_f32 CameraDiffs;
-		CameraDiffs.x = (BIT_FLOAT32)MousePosition.x - (BIT_FLOAT32)OldMousePosition.x;
-		CameraDiffs.y = (BIT_FLOAT32)MousePosition.y - (BIT_FLOAT32)OldMousePosition.y;
+		CameraDiffs.x = (BIT_FLOAT32)MousePosition.x - (BIT_FLOAT32)MouseLockPosition.x;
+		CameraDiffs.y = (BIT_FLOAT32)MousePosition.y - (BIT_FLOAT32)MouseLockPosition.y;
 		if( CameraDiffs.y > 0.0f )
 		{
 			Camera.RotateUp( abs( CameraDiffs.y ) );
@@ -314,8 +347,14 @@ BIT_UINT32 CreateWindow( )
 		return BIT_ERROR;
 	}
 
+	// Calculate the mouse lock position
+	Bit::Vector2_si32 WindowPosition = pWindow->GetPosition( );
+	MouseLockPosition = WindowPosition + ( pWindow->GetSize( ) / 2 );
+
 	// Change the window's title
 	pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: åäö ÅÄÖ" );
+	pWindow->ShowCursor( BIT_FALSE );
+	pWindow->SetCursorPosition( MouseLockPosition );
 
 	return BIT_OK;
 }
@@ -342,6 +381,7 @@ BIT_UINT32 CreateGraphicDevice( )
 	pGraphicDevice->EnableDepthTest( );
 	pGraphicDevice->EnableTexture( );
 	pGraphicDevice->EnableAlpha( );
+	pGraphicDevice->EnableFaceCulling( Bit::GraphicDevice::Culling_BackFace );
 
 	// Initialize the resource manager
 	Bit::Texture::eFilter TextureFilters[ ] =
@@ -395,7 +435,7 @@ BIT_UINT32 CreateModel( )
 	{
 		Bit::Texture::Filter_None, Bit::Texture::Filter_None
 	};
-	if( pModel->Load( ModelVerteBits, TextureFilters ) != BIT_OK )
+	if( pModel->Load( ModelVerteBits, TextureFilters, BIT_TRUE ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the model\n" );
 		return BIT_ERROR;
@@ -448,9 +488,10 @@ BIT_UINT32 CreateModelShader( )
 		"void main(void) \n"
 		"{ \n"
 		"	vec4 DiffuseColor = texture2D( DiffuseTexture, out_Texture );\n"
+		"	vec4 NormalColor = normalize(texture2D( NormalTexture, out_Texture ) );\n"
 
 		"	vec3 LightDirection = normalize( LightPosition - out_Position ); \n"
-		"	float DiffuseLight = max( dot( out_Normal, LightDirection ), 0.2 ); \n"
+		"	float DiffuseLight = max( dot( out_Normal, LightDirection ), 0.0 ); \n"
 		"	vec4 DiffuseLightVector = vec4( DiffuseLight, DiffuseLight, DiffuseLight, 1.0 ); \n"
 
 		"	out_Color = DiffuseColor * DiffuseLightVector; \n"
@@ -525,7 +566,7 @@ BIT_UINT32 CreateModelShader( )
 		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_Projection ) );
 	pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix",
 		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_ModelView ) );
-	pShaderProgram_Model->SetUniform3f( "LightPosition", 0.0f, 100.0f, 0.0f );
+	pShaderProgram_Model->SetUniform3f( "LightPosition", 0.0f, 200.0f, 0.0f );
 	pShaderProgram_Model->Unbind( );
 	
 	return BIT_OK;
