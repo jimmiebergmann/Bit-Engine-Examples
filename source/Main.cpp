@@ -150,13 +150,18 @@ int main( int argc, char ** argv )
 							pGraphicDevice->EnableFaceCulling( Bit::GraphicDevice::Culling_FrontFace );
 						}
 						break;
-						// Mouse visibility
 						case 'C':
+						{
+							pGraphicDevice->DisableFaceCulling( );
+						}
+						break;
+						// Mouse visibility
+						case 'V':
 						{
 							pWindow->ShowCursor( BIT_TRUE );
 						}
 						break;
-						case 'V':
+						case 'B':
 						{
 							pWindow->ShowCursor( BIT_FALSE );
 						}
@@ -315,8 +320,8 @@ void InitializeMatrixManager( )
 
 void InitializeCamera( )
 {
-	Camera.SetPosition( Bit::Vector3_f32( 0.0f, 0.0f, 0.0f ) );
-	Camera.SetDirection( Bit::Vector3_f32( 0.0f, 0.0f, 1.0f ) );
+	Camera.SetPosition( Bit::Vector3_f32( 0.0f, 0.0f, 4.0f ) );
+	Camera.SetDirection( Bit::Vector3_f32( 0.0f, 0.0f, -1.0f ) );
 	Camera.SetMovementSpeed( 1000.0f );
 	Camera.SetEyeSpeed( 15.0f );
 	Camera.UpdateMatrix( );
@@ -415,7 +420,7 @@ BIT_UINT32 CreateModel( )
 	Timer.Start( );
 
 	BIT_UINT32 Status = BIT_OK;
-	if( ( Status = pModel->ReadFile( Bit::GetAbsolutePath( "../../../Data/Sponza/sponza2.obj").c_str( ) ) ) != BIT_OK )
+	if( ( Status = pModel->ReadFile( Bit::GetAbsolutePath( /*"../../../Data/Cube.obj" */ "../../../Data/Sponza/sponza2.obj" ).c_str( ) ) ) != BIT_OK )
 	{
 		if( Status == BIT_ERROR_OPEN_FILE )
 		{
@@ -430,9 +435,12 @@ BIT_UINT32 CreateModel( )
 	}
 
 	// Load the model
-	BIT_UINT32 ModelVerteBits = 0;
+	BIT_UINT32 ModelVerteBits = Bit::VertexObject::Vertex_Position | Bit::VertexObject::Vertex_Texture
+		| Bit::VertexObject::Vertex_Normal | Bit::VertexObject::Vertex_Tangent | Bit::VertexObject::Vertex_Binormal;
 	Bit::Texture::eFilter TextureFilters[ ] =
 	{
+		Bit::Texture::Filter_Min, Bit::Texture::Filter_Linear_Mipmap,
+		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Linear_Mipmap,
 		Bit::Texture::Filter_None, Bit::Texture::Filter_None
 	};
 	if( pModel->Load( ModelVerteBits, TextureFilters, BIT_TRUE ) != BIT_OK )
@@ -457,19 +465,38 @@ BIT_UINT32 CreateModelShader( )
 		"in vec3 Position; \n"
 		"in vec2 Texture; \n"
 		"in vec3 Normal; \n"
+		"in vec3 Tangent; \n"
+		"in vec3 Binormal; \n"
+
 		"out vec3 out_Position; \n"
 		"out vec2 out_Texture; \n"
 		"out vec3 out_Normal; \n"
-		
+		"out vec3 out_Tangent; \n"
+		"out vec3 out_Binormal; \n"
+		"out mat3 out_TangentSpace; \n"
+
 		"uniform mat4 ProjectionMatrix; \n"
 		"uniform mat4 ViewMatrix; \n"
 
 		"void main(void) \n"
 		"{ \n"
-		"	gl_Position = ProjectionMatrix * ViewMatrix * vec4( Position, 1.0 ); \n"
-		"	out_Position = Position; \n"
+
+		// Set some out values
+		"	vec4 NewPosition = vec4( Position, 1.0 ); \n"
+		"	out_Position = NewPosition.xyz; \n"
 		"	out_Texture = Texture; \n"
-		"	out_Normal = Normal; \n"
+		"	out_Normal = normalize( Normal ); \n"
+		"	out_Tangent = normalize( Tangent ); \n"
+		"	out_Binormal = normalize( Binormal ); \n"
+
+		// Calculate the tangent space matrix
+		"	out_TangentSpace[ 0 ] = out_Tangent; \n"
+		"	out_TangentSpace[ 1 ] = out_Binormal; \n"
+		"	out_TangentSpace[ 2 ] = out_Normal; \n"
+
+		// Set the output position
+		"	gl_Position = ProjectionMatrix * ViewMatrix * NewPosition; \n"
+
 		"} \n";
 
 	static const std::string FragmentSource =
@@ -479,6 +506,11 @@ BIT_UINT32 CreateModelShader( )
 		"in vec3 out_Position; \n"
 		"in vec2 out_Texture; \n"
 		"in vec3 out_Normal; \n"
+		"in vec3 out_Tangent; \n"
+		"in vec3 out_Binormal; \n"
+		"in vec3 out_LightVec; \n"
+		"in mat3 out_TangentSpace; \n"
+
 		"out vec4 out_Color; \n"
 
 		"uniform sampler2D DiffuseTexture; \n"
@@ -487,14 +519,25 @@ BIT_UINT32 CreateModelShader( )
 
 		"void main(void) \n"
 		"{ \n"
-		"	vec4 DiffuseColor = texture2D( DiffuseTexture, out_Texture );\n"
-		"	vec4 NormalColor = normalize(texture2D( NormalTexture, out_Texture ) );\n"
 
-		"	vec3 LightDirection = normalize( LightPosition - out_Position ); \n"
-		"	float DiffuseLight = max( dot( out_Normal, LightDirection ), 0.0 ); \n"
-		"	vec4 DiffuseLightVector = vec4( DiffuseLight, DiffuseLight, DiffuseLight, 1.0 ); \n"
+		// Diffuse color map
+		"	vec4 DiffuseMap = texture2D( DiffuseTexture, out_Texture ); \n"
+		"	if( DiffuseMap.a == 0.0 ) { discard; } \n"
 
-		"	out_Color = DiffuseColor * DiffuseLightVector; \n"
+		// Normal color map
+		"	vec4 NormalMap = texture2D( NormalTexture, out_Texture ); \n"
+		"	NormalMap.y = 1.0 - NormalMap.y; \n"
+		"	vec3 OldNormalDirection = 2.0 * NormalMap.rgb - 1.0; \n"
+		"	vec3 NormalDirection = normalize( out_TangentSpace * OldNormalDirection ); \n"
+
+		// Compute the direction of the light source
+		"	vec3 LightDirection = normalize( vec3( LightPosition - out_Position ) ); \n"
+
+		// Compute the light
+		"	vec3 Light = vec3( max( dot( LightDirection, NormalDirection ), 0.1 ) ); \n"
+
+		// Set the output color
+		"	out_Color = DiffuseMap * vec4( Light.xyz, 1.0 ); \n"
 		"} \n";
 
 	// Load the shaders
@@ -550,6 +593,8 @@ BIT_UINT32 CreateModelShader( )
 	pShaderProgram_Model->SetAttributeLocation( "Position", 0 );
 	pShaderProgram_Model->SetAttributeLocation( "Texture", 1 );
 	pShaderProgram_Model->SetAttributeLocation( "Normal", 2 );
+	pShaderProgram_Model->SetAttributeLocation( "Tangent", 3 );
+	pShaderProgram_Model->SetAttributeLocation( "Binormal", 4 );
 
 	// Link the shaders
 	if( pShaderProgram_Model->Link( ) != BIT_OK )
@@ -566,7 +611,7 @@ BIT_UINT32 CreateModelShader( )
 		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_Projection ) );
 	pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix",
 		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_ModelView ) );
-	pShaderProgram_Model->SetUniform3f( "LightPosition", 0.0f, 200.0f, 0.0f );
+	pShaderProgram_Model->SetUniform3f( "LightPosition", 1.0f, 100.0f, 0.0f );
 	pShaderProgram_Model->Unbind( );
 	
 	return BIT_OK;
