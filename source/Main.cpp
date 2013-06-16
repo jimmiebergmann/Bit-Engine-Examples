@@ -23,6 +23,7 @@ Bit::Vector2_ui32 WindowSize( 1600, 1000 );
 Bit::Vector2_si32 MousePosition( 0, 0 );
 Bit::Vector2_si32 MouseLockPosition( 500, 500 );
 Camera Camera;
+BIT_BOOL UseNormalMapping = BIT_TRUE;
 
 
 // Global functions
@@ -166,10 +167,18 @@ int main( int argc, char ** argv )
 							pWindow->ShowCursor( BIT_FALSE );
 						}
 						break;
-
+						case 'M':
+						{
+							// Flip the flag
+							UseNormalMapping = !UseNormalMapping;
+							
+							// Bind and update the uniform
+							pShaderProgram_Model->Bind( );
+							pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
+							pShaderProgram_Model->Unbind( );
+						}
+						break;
 						
-
-
 						// Exit keys
 						case 27:
 						{
@@ -320,8 +329,8 @@ void InitializeMatrixManager( )
 
 void InitializeCamera( )
 {
-	Camera.SetPosition( Bit::Vector3_f32( 0.0f, 0.0f, 4.0f ) );
-	Camera.SetDirection( Bit::Vector3_f32( 0.0f, 0.0f, -1.0f ) );
+	Camera.SetPosition( Bit::Vector3_f32( -900.0f, 600.0f, -200.0f ) );
+	Camera.SetDirection( Bit::Vector3_f32( 1.0f, -0.5f, 0.4f ).Normal( ) );
 	Camera.SetMovementSpeed( 1000.0f );
 	Camera.SetEyeSpeed( 15.0f );
 	Camera.UpdateMatrix( );
@@ -516,6 +525,8 @@ BIT_UINT32 CreateModelShader( )
 		"uniform sampler2D DiffuseTexture; \n"
 		"uniform sampler2D NormalTexture; \n"
 		"uniform vec3 LightPosition; \n"
+		"uniform int UseNormalMapping; \n"
+
 
 		"void main(void) \n"
 		"{ \n"
@@ -524,17 +535,30 @@ BIT_UINT32 CreateModelShader( )
 		"	vec4 DiffuseMap = texture2D( DiffuseTexture, out_Texture ); \n"
 		"	if( DiffuseMap.a == 0.0 ) { discard; } \n"
 
-		// Normal color map
-		"	vec4 NormalMap = texture2D( NormalTexture, out_Texture ); \n"
-		"	NormalMap.y = 1.0 - NormalMap.y; \n"
-		"	vec3 OldNormalDirection = 2.0 * NormalMap.rgb - 1.0; \n"
-		"	vec3 NormalDirection = normalize( out_TangentSpace * OldNormalDirection ); \n"
+		"	vec3 Light; \n"
 
 		// Compute the direction of the light source
 		"	vec3 LightDirection = normalize( vec3( LightPosition - out_Position ) ); \n"
 
+		// Are we using normal maps?
+		"	if( UseNormalMapping == 1 ) \n"
+		"	{ \n"
+				// Normal color map
+		"		vec4 NormalMap = texture2D( NormalTexture, out_Texture ); \n"
+		"		NormalMap.y = 1.0 - NormalMap.y; \n"
+		"		vec3 OldNormalDirection = 2.0 * NormalMap.rgb - 1.0; \n"
+
+		"		vec3 NormalDirection = normalize( out_TangentSpace * OldNormalDirection ); \n"
+
 		// Compute the light
-		"	vec3 Light = vec3( max( dot( LightDirection, NormalDirection ), 0.1 ) ); \n"
+		"		Light = vec3( max( dot( LightDirection, NormalDirection ), 0.1 ) ); \n"
+
+		"	} \n"
+		// Use normal lighting
+		"	else \n"
+		"	{ \n"
+		"		Light = vec3( max( dot( LightDirection, out_Normal ), 0.1 ) ); \n"
+		"	} \n"
 
 		// Set the output color
 		"	out_Color = DiffuseMap * vec4( Light.xyz, 1.0 ); \n"
@@ -612,6 +636,7 @@ BIT_UINT32 CreateModelShader( )
 	pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix",
 		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_ModelView ) );
 	pShaderProgram_Model->SetUniform3f( "LightPosition", 1.0f, 100.0f, 0.0f );
+	pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
 	pShaderProgram_Model->Unbind( );
 	
 	return BIT_OK;
