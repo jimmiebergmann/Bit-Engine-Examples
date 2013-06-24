@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="Bit-Examples"
+	Name="ShadowMapping"
 	ProjectGUID="{3EC61254-243A-4482-933A-242C24AF2D4B}"
 	RootNamespace="BitExamples"
 	Keyword="Win32Proj"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../include;"
+				AdditionalIncludeDirectories="../../ShadowMapping/include;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;BIT_STATIC_LIB;$(NOINHERIT)"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../include;"
+				AdditionalIncludeDirectories="../../ShadowMapping/include;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;BIT_STATIC_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -191,7 +191,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="../../ShadowMapping/include;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;$(NOINHERIT)"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -267,7 +267,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../include;"
+				AdditionalIncludeDirectories="../../ShadowMapping/include;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -321,15 +321,15 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\source\Camera.cpp"
+			RelativePath="..\..\ShadowMapping\source\Camera.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\include\Camera.hpp"
+			RelativePath="..\..\ShadowMapping\include\Camera.hpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\source\Main.cpp"
+			RelativePath="..\..\ShadowMapping\source\Main.cpp"
 			>
 		</File>
 	</Files>
