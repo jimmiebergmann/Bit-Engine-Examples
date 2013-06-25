@@ -50,7 +50,7 @@ public:
 
 	// Set functions
 	void SetPosition( const Bit::Vector3_f32 p_Position );
-	void SetDirection( const Bit::Vector3_f32 p_Direction );
+	void SetDirection( Bit::Vector3_f32 p_Direction );
 	void SetMovementSpeed( const BIT_FLOAT32 p_Speed );
 	void SetEyeSpeed( const BIT_FLOAT32 p_Speed );
 
@@ -58,6 +58,7 @@ public:
 	Bit::Matrix4x4 GetMatrix( ) const;
 	Bit::Vector3_f32 GetPosition( ) const;
 	Bit::Vector3_f32 GetDirection( ) const;
+	Bit::Vector2_f32 GetAngles( ) const;
 
 private:
 

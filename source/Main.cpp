@@ -1,6 +1,7 @@
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
-#include <Bit/Graphics/Image.hpp>
+#include <Bit/Graphics/Texture.hpp>
+#include <Bit/Graphics/Framebuffer.hpp>
 #include <Bit/Graphics/ModelOBJ.hpp>
 #include <Bit/Graphics/ShaderProgram.hpp>
 #include <Bit/System/Timer.hpp>
@@ -12,28 +13,58 @@
 #include <Bit/System/MemoryLeak.hpp>
 #include <Camera.hpp>
 
-// Global variables
+// Window/graphic device
 Bit::Window * pWindow = BIT_NULL;
 Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
-Bit::Model * pModel = BIT_NULL;
-Bit::ShaderProgram * pShaderProgram_Model = BIT_NULL;
-Bit::Shader * pVertexShader_Model = BIT_NULL;
-Bit::Shader * pFragmentShader_Model = BIT_NULL;
-Bit::Vector2_ui32 WindowSize( 1600, 1000 );
+
+// Level variables
+const std::string LevelModelPath = "../../../Data/Level.obj";
+Bit::Model * pLevelModel = BIT_NULL;
+Bit::Texture * pLevelColorTexture = BIT_NULL;
+Bit::Texture * pLevelDepthTexture = BIT_NULL;
+Bit::Framebuffer * pLevelFramebuffer = BIT_NULL;
+Bit::ShaderProgram * pLevelShaderProgram = BIT_NULL;
+Bit::Shader * pLevelVertexShader = BIT_NULL;
+Bit::Shader * pLevelFragmentShader = BIT_NULL;
+
+// Camera variables
+Camera Camera;
 Bit::Vector2_si32 MousePosition( 0, 0 );
 Bit::Vector2_si32 MouseLockPosition( 500, 500 );
-Camera Camera;
+
+// Fullscreen data
+Bit::VertexObject * pFullscreenVertexObject = BIT_NULL;
+Bit::ShaderProgram * pFullscreenShaderProgram = BIT_NULL;
+Bit::Shader * pFullscreenVertexShader = BIT_NULL;
+Bit::Shader * pFullscreenFragmentShader = BIT_NULL;
+
+// Framebuffer/renderbuffer/shadow data
+Bit::Texture * pShadowDepthTexture = BIT_NULL;
+Bit::Framebuffer * pShadowFramebuffer = BIT_NULL;
+Bit::ShaderProgram * pShadowShaderProgram = BIT_NULL;
+Bit::Shader * pShadowVertexShader = BIT_NULL;
+Bit::Shader * pShadowFragmentShader = BIT_NULL;
+Bit::Vector3_f32 LightPosition( 24.0f, 13.0f, 9.0f );
+Bit::Vector3_f32 LightDirection( -0.817f, -0.508f, -0.271f );
+Bit::Matrix4x4 ShadowViewMatrix;
+Bit::Matrix4x4 BiasMatrix;
+
+// Setting varialbes
+const Bit::Vector2_ui32 WindowSize( 1024, 768 );
 BIT_BOOL UseNormalMapping = BIT_TRUE;
 
 
 // Global functions
 int CloseApplication( const int p_Code );
-void InitializeMatrixManager( );
 void InitializeCamera( );
 BIT_UINT32 CreateWindow( );
 BIT_UINT32 CreateGraphicDevice( );
-BIT_UINT32 CreateModel( );
-BIT_UINT32 CreateModelShader( );
+BIT_UINT32 LoadMatrices( );
+BIT_UINT32 LoadLevelData( );
+BIT_UINT32 LoadFullscreenData( );
+BIT_UINT32 LoadShadowData( );
+BIT_UINT32 InitializeShadowMap( );
+void Render( );
 
 // Main function
 int main( int argc, char ** argv )
@@ -44,17 +75,17 @@ int main( int argc, char ** argv )
 	// Setting the absolute path in order to read files.
 	Bit::SetAbsolutePath( argv[ 0 ] );
 
-	// Initialize the matrix manager
-	InitializeMatrixManager( );
-
 	// Initialize the camera
 	InitializeCamera( );
 
 	// Initialize the application
 	if( CreateWindow( ) != BIT_OK ||
 		CreateGraphicDevice( ) != BIT_OK ||
-		CreateModel( ) != BIT_OK  ||
-		CreateModelShader( ) != BIT_OK )
+		LoadMatrices( ) != BIT_OK ||
+		LoadLevelData( ) != BIT_OK ||
+		LoadFullscreenData( ) != BIT_OK ||
+		LoadShadowData( ) != BIT_OK ||
+		InitializeShadowMap( ) != BIT_OK )
 	{
 		return CloseApplication( 0 );
 	}
@@ -172,10 +203,10 @@ int main( int argc, char ** argv )
 							// Flip the flag
 							UseNormalMapping = !UseNormalMapping;
 							
-							// Bind and update the uniform
+							/*// Bind and update the uniform
 							pShaderProgram_Model->Bind( );
 							pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
-							pShaderProgram_Model->Unbind( );
+							pShaderProgram_Model->Unbind( );*/
 						}
 						break;
 						
@@ -242,25 +273,41 @@ int main( int argc, char ** argv )
 		}
 
 
-		// Clear the buffers
+		// ///////////////////////////////////////////////////
+		// Render the level to the level framebuffer
+		pLevelFramebuffer->Bind( );
+		pGraphicDevice->EnableDepthTest( );
 		pGraphicDevice->ClearColor( );
 		pGraphicDevice->ClearDepth( );
 
-		// Bind the model shader program
-		pShaderProgram_Model->Bind( );
+		// Bind the level model shader program
+		pLevelShaderProgram->Bind( );
+		pShadowDepthTexture->Bind( 0 );
 
 		// Update the camera if needed
 		if( Camera.Update( DeltaTime ) )
 		{
-			pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix", Camera.GetMatrix( ) );
+			pLevelShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", Camera.GetMatrix( ) );
 		}
 
 		// Render the model
-		pModel->Render( Bit::VertexObject::RenderMode_Triangles );
+		pLevelModel->Render( Bit::VertexObject::RenderMode_Triangles );
 
-		// Unbind the shader program
-		pShaderProgram_Model->Unbind( );
+		// Unbind the level model shader program
+		pLevelShaderProgram->Unbind( );
 
+
+		// ///////////////////////////////////////////////////
+		// Render the fullscreen quad
+		pGraphicDevice->BindDefaultFramebuffer( );
+		pGraphicDevice->DisableDepthTest( );
+		pGraphicDevice->ClearColor( );
+
+		// Bind the fullscreen shader program
+		pFullscreenShaderProgram->Bind( );
+		pLevelColorTexture->Bind( 0 );
+		pFullscreenVertexObject->Render( Bit::VertexObject::RenderMode_Triangles );
+		pFullscreenShaderProgram->Unbind( );
 
 		// Present the buffers
 		pGraphicDevice->Present( );
@@ -276,28 +323,101 @@ int CloseApplication( const int p_Code )
 	// Release the resource manager
 	Bit::ResourceManager::Release( );
 
-	if( pModel )
+
+	if( pShadowDepthTexture )
 	{
-		delete pModel;
-		pModel = BIT_NULL;
+		delete pShadowDepthTexture;
+		pShadowDepthTexture = BIT_NULL;
 	}
 
-	if( pShaderProgram_Model )
+	if( pShadowFramebuffer )
 	{
-		delete pShaderProgram_Model;
-		pShaderProgram_Model = BIT_NULL;
+		delete pShadowFramebuffer;
+		pShadowFramebuffer = BIT_NULL;
 	}
 
-	if( pVertexShader_Model )
+	if( pShadowShaderProgram )
 	{
-		delete pVertexShader_Model;
-		pVertexShader_Model = BIT_NULL;
+		delete pShadowShaderProgram;
+		pShadowShaderProgram = BIT_NULL;
 	}
 
-	if( pFragmentShader_Model )
+	if( pShadowVertexShader )
 	{
-		delete pFragmentShader_Model;
-		pFragmentShader_Model = BIT_NULL;
+		delete pShadowVertexShader;
+		pShadowVertexShader = BIT_NULL;
+	}
+
+	if( pShadowFragmentShader )
+	{
+		delete pShadowFragmentShader;
+		pShadowFragmentShader = BIT_NULL;
+	}
+
+	if( pFullscreenShaderProgram )
+	{
+		delete pFullscreenShaderProgram;
+		pFullscreenShaderProgram = BIT_NULL;
+	}
+
+	if( pFullscreenVertexShader )
+	{
+		delete pFullscreenVertexShader;
+		pFullscreenVertexShader = BIT_NULL;
+	}
+
+	if( pFullscreenFragmentShader )
+	{
+		delete pFullscreenFragmentShader;
+		pFullscreenFragmentShader = BIT_NULL;
+	}
+
+	if( pFullscreenVertexObject )
+	{
+		delete pFullscreenVertexObject;
+		pFullscreenVertexObject = BIT_NULL;
+	}
+
+	if( pLevelFragmentShader )
+	{
+		delete pLevelFragmentShader;
+		pLevelFragmentShader = BIT_NULL;
+	}
+
+	if( pLevelVertexShader )
+	{
+		delete pLevelVertexShader;
+		pLevelVertexShader = BIT_NULL;
+	}
+
+	if( pLevelShaderProgram )
+	{
+		delete pLevelShaderProgram;
+		pLevelShaderProgram = BIT_NULL;
+	}
+
+	if( pLevelColorTexture )
+	{
+		delete pLevelColorTexture;
+		pLevelColorTexture = BIT_NULL;
+	}
+
+	if( pLevelDepthTexture )
+	{
+		delete pLevelDepthTexture;
+		pLevelDepthTexture = BIT_NULL;
+	}
+
+	if( pLevelFramebuffer )
+	{
+		delete pLevelFramebuffer;
+		pLevelFramebuffer = BIT_NULL;
+	}
+
+	if( pLevelModel )
+	{
+		delete pLevelModel;
+		pLevelModel = BIT_NULL;
 	}
 
 	if( pGraphicDevice )
@@ -314,31 +434,6 @@ int CloseApplication( const int p_Code )
 
 	// Return the code
 	return p_Code;
-}
-
-void InitializeMatrixManager( )
-{
-	// Projection
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Projection );
-	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 2.0f, 4000.0f ); 
-
-	// Model view
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_ModelView );
-	Bit::MatrixManager::LoadIdentity( );
-}
-
-void InitializeCamera( )
-{
-	Camera.SetPosition( Bit::Vector3_f32( -900.0f, 600.0f, -200.0f ) );
-	Camera.SetDirection( Bit::Vector3_f32( 1.0f, -0.5f, 0.4f ).Normal( ) );
-	Camera.SetMovementSpeed( 1000.0f );
-	Camera.SetEyeSpeed( 15.0f );
-	Camera.UpdateMatrix( );
-
-	// Set the matrix to the matrix manager
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_ModelView );
-	Bit::MatrixManager::SetMatrix( Camera.GetMatrix( ) );
-
 }
 
 BIT_UINT32 CreateWindow( )
@@ -395,7 +490,8 @@ BIT_UINT32 CreateGraphicDevice( )
 	pGraphicDevice->EnableDepthTest( );
 	pGraphicDevice->EnableTexture( );
 	pGraphicDevice->EnableAlpha( );
-	pGraphicDevice->EnableFaceCulling( Bit::GraphicDevice::Culling_BackFace );
+	//pGraphicDevice->EnableFaceCulling( Bit::GraphicDevice::Culling_BackFace );
+	pGraphicDevice->DisableFaceCulling( );
 
 	// Initialize the resource manager
 	Bit::Texture::eFilter TextureFilters[ ] =
@@ -417,19 +513,75 @@ BIT_UINT32 CreateGraphicDevice( )
 	return BIT_OK;
 }
 
-BIT_UINT32 CreateModel( )
+BIT_UINT32 LoadMatrices( )
 {
-	// Allocate the image
-	if( ( pModel = pGraphicDevice->CreateModel( Bit::Model::Model_OBJ ) ) == BIT_NULL )
+	// Initialize the matrix manager data
+	
+	// Projection
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Projection );
+	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 2.0f, 50.0f ); 
+
+	// View matrix
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
+	Bit::MatrixManager::LoadIdentity( );
+
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Model );
+	Bit::MatrixManager::LoadIdentity( );
+
+	// Bias matrix
+	BiasMatrix.Identity( );
+	BiasMatrix.Translate( 0.5f, 0.5f, 0.5f );
+	BiasMatrix.m[ 0 ] = 0.5f;
+	BiasMatrix.m[ 5 ] = 0.5f;
+	BiasMatrix.m[ 10 ] = 0.5f;
+
+	// Shadow view matrix
+	ShadowViewMatrix.Identity( );
+	ShadowViewMatrix.LookAt( LightPosition, LightDirection, Bit::Vector3_f32( 0.0f, 1.0f, 0.0f ) );
+
+	// Initialize the camera
+	InitializeCamera( );
+
+
+
+	return BIT_OK;
+}
+
+void InitializeCamera( )
+{
+	Camera.SetPosition( LightPosition );
+	Camera.SetDirection( LightDirection );
+	Camera.SetMovementSpeed( 40.0f );
+	Camera.SetEyeSpeed( 15.0f );
+	Camera.UpdateMatrix( );
+
+	/*
+		Pos:  23.960457 12.673248 8.509544
+		Dir: -0.817315 -0.508349 -0.271252
+	*/
+
+	// Set the matrix to the matrix manager
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
+	Bit::MatrixManager::SetMatrix( Camera.GetMatrix( ) );
+
+}
+
+
+BIT_UINT32 LoadLevelData( )
+{
+
+
+	// Level model
+
+	// Create the level model
+	if( ( pLevelModel = pGraphicDevice->CreateModel( Bit::Model::Model_OBJ ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the model\n" );
+		bitTrace( "[Error] Can not create the level model\n" );
 	}
 
-	Bit::Timer Timer;
-	Timer.Start( );
-
+	// Read the model file
 	BIT_UINT32 Status = BIT_OK;
-	if( ( Status = pModel->ReadFile( Bit::GetAbsolutePath( /*"../../../Data/Cube.obj" */ "../../../Data/Sponza/sponza2.obj" ).c_str( ) ) ) != BIT_OK )
+	if( ( Status = pLevelModel->ReadFile( Bit::GetAbsolutePath( LevelModelPath ).c_str( ) ) ) != BIT_OK )
 	{
 		if( Status == BIT_ERROR_OPEN_FILE )
 		{
@@ -437,74 +589,119 @@ BIT_UINT32 CreateModel( )
 		}
 		else
 		{
-			bitTrace( "[Error] Can not read the model file\n" );
+			bitTrace( "[Error] Can not read the level model file\n" );
 		}
 
 		return BIT_ERROR;
 	}
 
 	// Load the model
-	BIT_UINT32 ModelVerteBits = Bit::VertexObject::Vertex_Position | Bit::VertexObject::Vertex_Texture
-		| Bit::VertexObject::Vertex_Normal | Bit::VertexObject::Vertex_Tangent | Bit::VertexObject::Vertex_Binormal;
+	BIT_UINT32 ModelVerteBits = Bit::VertexObject::Vertex_Position | Bit::VertexObject::Vertex_Normal;
+	// Set The texture filters
 	Bit::Texture::eFilter TextureFilters[ ] =
 	{
-		Bit::Texture::Filter_Min, Bit::Texture::Filter_Linear_Mipmap,
-		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Linear_Mipmap,
+		Bit::Texture::Filter_Min, Bit::Texture::Filter_Nearest,
+		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Nearest,
 		Bit::Texture::Filter_None, Bit::Texture::Filter_None
 	};
-	if( pModel->Load( ModelVerteBits, TextureFilters, BIT_TRUE ) != BIT_OK )
+	if( pLevelModel->Load( ModelVerteBits, TextureFilters, BIT_TRUE ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not load the model\n" );
+		bitTrace( "[Error] Can not load the level model\n" );
 		return BIT_ERROR;
 	}
 
-	Timer.Stop( );
-	bitTrace( "Model load time: %f ms.\n", Timer.GetTime( ) * 1000.0f );
 
-	return BIT_OK;
-}
 
-BIT_UINT32 CreateModelShader( )
-{
+	// Level textures / framebuffer
+
+	if( ( pLevelColorTexture = pGraphicDevice->CreateTexture( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the level color texture\n" );
+		return BIT_ERROR;
+	}
+	if( ( pLevelDepthTexture = pGraphicDevice->CreateTexture( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the level depth texture\n" );
+		return BIT_ERROR;
+	}
+
+
+	// Load the level textures
+	if( pLevelColorTexture->Load( WindowSize, BIT_RGB, BIT_RGB, BIT_TYPE_UCHAR8, BIT_NULL ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the level color texture\n" );
+		return BIT_ERROR;
+	}
+	if( pLevelDepthTexture->Load( WindowSize, BIT_DEPTH, BIT_DEPTH, BIT_TYPE_FLOAT32, BIT_NULL ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the level depth texture\n" );
+		return BIT_ERROR;
+	}
+
+	if( pLevelColorTexture->SetFilters( TextureFilters ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not set the level color texture filters\n" );
+		return BIT_ERROR;
+	}
+	if( pLevelDepthTexture->SetFilters( TextureFilters ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not set the level depth texture filters\n" );
+		return BIT_ERROR;
+	}
+
+
+
+	// Create the shadow framebuffer
+	if( ( pLevelFramebuffer = pGraphicDevice->CreateFramebuffer( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the level framebuffer\n" );
+		return BIT_ERROR;
+	}
+
+	// Attach the depth shadow texture to the framebuffer
+	if( pLevelFramebuffer->Attach( pLevelColorTexture ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not attach the color texture to the level framebuffer\n" );
+		return BIT_ERROR;
+	}
+	if( pLevelFramebuffer->Attach( pLevelDepthTexture ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not attach the depth texture to the level framebuffer\n" );
+		return BIT_ERROR;
+	}
+
+
+	// Level shaders
+
 	// Shader sources
 	static const std::string VertexSource =
 		"#version 330 \n"
 		"precision highp float; \n"
 
 		"in vec3 Position; \n"
-		"in vec2 Texture; \n"
 		"in vec3 Normal; \n"
-		"in vec3 Tangent; \n"
-		"in vec3 Binormal; \n"
 
 		"out vec3 out_Position; \n"
-		"out vec2 out_Texture; \n"
 		"out vec3 out_Normal; \n"
-		"out vec3 out_Tangent; \n"
-		"out vec3 out_Binormal; \n"
-		"out mat3 out_TangentSpace; \n"
 
+		"uniform mat4 BiasMatrix; \n"
 		"uniform mat4 ProjectionMatrix; \n"
 		"uniform mat4 ViewMatrix; \n"
+		"uniform mat4 ShadowViewMatrix; \n"
+
+		// Shadow data
+		"out vec4 LightVertexPosition; \n"
 
 		"void main(void) \n"
 		"{ \n"
 
 		// Set some out values
-		"	vec4 NewPosition = vec4( Position, 1.0 ); \n"
-		"	out_Position = NewPosition.xyz; \n"
-		"	out_Texture = Texture; \n"
+		"	out_Position = Position.xyz; \n"
 		"	out_Normal = normalize( Normal ); \n"
-		"	out_Tangent = normalize( Tangent ); \n"
-		"	out_Binormal = normalize( Binormal ); \n"
 
-		// Calculate the tangent space matrix
-		"	out_TangentSpace[ 0 ] = out_Tangent; \n"
-		"	out_TangentSpace[ 1 ] = out_Binormal; \n"
-		"	out_TangentSpace[ 2 ] = out_Normal; \n"
-
-		// Set the output position
-		"	gl_Position = ProjectionMatrix * ViewMatrix * NewPosition; \n"
+		// Set position and shadow light position 
+		"	LightVertexPosition = BiasMatrix * ProjectionMatrix * ShadowViewMatrix * vec4( Position, 1.0 ); \n"
+		"	gl_Position = ProjectionMatrix * ViewMatrix * vec4( Position, 1.0 ); \n"
 
 		"} \n";
 
@@ -513,131 +710,478 @@ BIT_UINT32 CreateModelShader( )
 		"precision highp float; \n"
 
 		"in vec3 out_Position; \n"
-		"in vec2 out_Texture; \n"
 		"in vec3 out_Normal; \n"
-		"in vec3 out_Tangent; \n"
-		"in vec3 out_Binormal; \n"
-		"in vec3 out_LightVec; \n"
-		"in mat3 out_TangentSpace; \n"
-
 		"out vec4 out_Color; \n"
 
-		"uniform sampler2D DiffuseTexture; \n"
-		"uniform sampler2D NormalTexture; \n"
 		"uniform vec3 LightPosition; \n"
-		"uniform int UseNormalMapping; \n"
 
+		// Shadow data
+		"uniform sampler2D ShadowTexture; \n"
+		"in vec4 LightVertexPosition; \n"
+		
 
 		"void main(void) \n"
 		"{ \n"
+		// Calculate the lighting
 
-		// Diffuse color map
-		"	vec4 DiffuseMap = texture2D( DiffuseTexture, out_Texture ); \n"
-		"	if( DiffuseMap.a == 0.0 ) { discard; } \n"
+		"	vec4 LightVertexPosition2 = LightVertexPosition; \n"
+		"	LightVertexPosition2 /= LightVertexPosition2.w; \n"
 
-		"	vec3 Light; \n"
+		"	float ShadowValue = 0.0; \n"
 
-		// Compute the direction of the light source
-		"	vec3 LightDirection = normalize( vec3( LightPosition - out_Position ) ); \n"
-
-		// Are we using normal maps?
-		"	if( UseNormalMapping == 1 ) \n"
+		"	for( float x = -0.001; x <= 0.001; x += 0.0005 ) \n"
 		"	{ \n"
-				// Normal color map
-		"		vec4 NormalMap = texture2D( NormalTexture, out_Texture ); \n"
-		"		NormalMap.y = 1.0 - NormalMap.y; \n"
-		"		vec3 OldNormalDirection = 2.0 * NormalMap.rgb - 1.0; \n"
+		"		for( float y = -0.0005; y <= 0.0005; y += 0.0001 ) \n"
+		"		{ \n"
 
-		"		vec3 NormalDirection = normalize( out_TangentSpace * OldNormalDirection ); \n"
+		"			if( texture2D( ShadowTexture, LightVertexPosition2.xy + vec2( x, y ) ).r >= LightVertexPosition2.z ) \n"
+		"			{ \n"
+		"				ShadowValue += 1.0; \n"
+		"			} \n"
 
-		// Compute the light
-		"		Light = vec3( max( dot( LightDirection, NormalDirection ), 0.1 ) ); \n"
+		"		} \n"
 
 		"	} \n"
-		// Use normal lighting
+
+		"	ShadowValue /= 64.0; \n"
+
+
+		/*"	vec4 ShadowColor = texture2D( ShadowTexture, LightVertexPosition2.xy ); \n"
+
+		"	float ShadowValue; \n"
+		"	if( ShadowColor.r >= LightVertexPosition2.z ) \n"
+		"		ShadowValue = 1.0; \n"
 		"	else \n"
-		"	{ \n"
-		"		Light = vec3( max( dot( LightDirection, out_Normal ), 0.1 ) ); \n"
-		"	} \n"
+		"		ShadowValue = 0.0; \n"*/
 
+	
+		//"float ShadowValue = 1.0; \n"
+
+
+
+		"	vec3 LightDirection = normalize( vec3( LightPosition - out_Position ) ); \n"
+		"	float Light = max( dot( out_Normal, LightDirection ) , 0.0f ); \n"
+		"	vec4 LightVector = vec4( Light, Light, Light, 1.0 ); \n"
 		// Set the output color
-		"	out_Color = DiffuseMap * vec4( Light.xyz, 1.0 ); \n"
+		"	out_Color = vec4( ShadowValue, ShadowValue, ShadowValue, 1.0 ) * LightVector; \n"
 		"} \n";
 
 	// Load the shaders
 	// Create the vertex and fragment shaders
-	if( ( pVertexShader_Model = pGraphicDevice->CreateShader( Bit::Shader::Vertex ) ) == BIT_NULL )
+	if( ( pLevelVertexShader = pGraphicDevice->CreateShader( Bit::Shader::Vertex ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the vertex shader\n" );
+		bitTrace( "[Error] Can not create the level vertex shader\n" );
 		return BIT_ERROR;
 	}
-	if( ( pFragmentShader_Model = pGraphicDevice->CreateShader( Bit::Shader::Fragment ) ) == BIT_NULL )
+	if( ( pLevelFragmentShader = pGraphicDevice->CreateShader( Bit::Shader::Fragment ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the vertex shader\n" );
+		bitTrace( "[Error] Can not create the level vertex shader\n" );
 		return BIT_ERROR;
 	}
 
 	// Set the sources
-	pVertexShader_Model->SetSource( VertexSource );
-	pFragmentShader_Model->SetSource( FragmentSource );
+	pLevelVertexShader->SetSource( VertexSource );
+	pLevelFragmentShader->SetSource( FragmentSource );
 
 	// Compile the shaders
-	if( pVertexShader_Model->Compile( ) != BIT_OK )
+	if( pLevelVertexShader->Compile( ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not compile the vertex shader\n" );
+		bitTrace( "[Error] Can not compile the level vertex shader\n" );
 		return BIT_ERROR;
 	}
-	if( pFragmentShader_Model->Compile( ) != BIT_OK )
+	if( pLevelFragmentShader->Compile( ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not compile the fragment shader\n" );
+		bitTrace( "[Error] Can not compile the level fragment shader\n" );
 		return BIT_ERROR;
 	}
 
 
 	// Create the shader program
-	if( ( pShaderProgram_Model = pGraphicDevice->CreateShaderProgram( ) ) == BIT_NULL )
+	if( ( pLevelShaderProgram = pGraphicDevice->CreateShaderProgram( ) ) == BIT_NULL )
 	{
-		bitTrace( "[Error] Can not create the shader program\n" );
+		bitTrace( "[Error] Can not create the level shader program\n" );
 		return BIT_ERROR;
 	}
 
 	// Attach the shaders
-	if( pShaderProgram_Model->AttachShaders( pVertexShader_Model ) != BIT_OK )
+	if( pLevelShaderProgram->AttachShaders( pLevelVertexShader ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not attach the vertex shader\n" );
+		bitTrace( "[Error] Can not attach the level vertex shader\n" );
 		return BIT_ERROR;
 	}
-	if( pShaderProgram_Model->AttachShaders( pFragmentShader_Model ) != BIT_OK )
+	if( pLevelShaderProgram->AttachShaders( pLevelFragmentShader ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not attach the fragment shader\n" );
+		bitTrace( "[Error] Can not attach the level fragment shader\n" );
 		return BIT_ERROR;
 	}
 
 	// Set attribute locations
-	pShaderProgram_Model->SetAttributeLocation( "Position", 0 );
-	pShaderProgram_Model->SetAttributeLocation( "Texture", 1 );
-	pShaderProgram_Model->SetAttributeLocation( "Normal", 2 );
-	pShaderProgram_Model->SetAttributeLocation( "Tangent", 3 );
-	pShaderProgram_Model->SetAttributeLocation( "Binormal", 4 );
+	pLevelShaderProgram->SetAttributeLocation( "Position", 0 );
+	pLevelShaderProgram->SetAttributeLocation( "Normal", 1 );
+	
 
 	// Link the shaders
-	if( pShaderProgram_Model->Link( ) != BIT_OK )
+	if( pLevelShaderProgram->Link( ) != BIT_OK )
 	{
-		bitTrace( "[Error] Can not link the shader program\n" );
+		bitTrace( "[Error] Can not link the level shader program\n" );
 		return BIT_ERROR;
 	}
 
 	// Set uniforms
-	pShaderProgram_Model->Bind( );
-	pShaderProgram_Model->SetUniform1i( "DiffuseTexture", 0 );
-	pShaderProgram_Model->SetUniform1i( "NormalTexture", 1 );
-	pShaderProgram_Model->SetUniformMatrix4x4f( "ProjectionMatrix",
+	pLevelShaderProgram->Bind( );
+
+	pLevelShaderProgram->SetUniformMatrix4x4f( "BiasMatrix", BiasMatrix );
+	pLevelShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix",
 		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_Projection ) );
-	pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix",
-		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_ModelView ) );
-	pShaderProgram_Model->SetUniform3f( "LightPosition", 1.0f, 100.0f, 0.0f );
-	pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
-	pShaderProgram_Model->Unbind( );
+	pLevelShaderProgram->SetUniformMatrix4x4f( "ViewMatrix",
+		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_View ) );
+	pLevelShaderProgram->SetUniformMatrix4x4f( "ShadowViewMatrix", ShadowViewMatrix );
+	pLevelShaderProgram->SetUniform1i( "ShadowTexture", 0 );
+	pLevelShaderProgram->SetUniform3f( "LightPosition", LightPosition.x, LightPosition.y, LightPosition.z );
+
+	pLevelShaderProgram->Unbind( );
+
+	return BIT_OK;
+}
+
+BIT_UINT32 LoadFullscreenData( )
+{
+	// Fullscreen vertex object
+
+	// Create the fulscreen vertex object
+	if( ( pFullscreenVertexObject = pGraphicDevice->CreateVertexObject( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}
+
+
+	BIT_FLOAT32 VertexPositions[ 18 ] =
+	{
+		0.0f, 0.0f, 0.0f,	WindowSize.x, 0.0f, 0.0f,		WindowSize.x, WindowSize.y, 0.0f,
+		0.0f, 0.0f, 0.0f,	WindowSize.x, WindowSize.y, 0.0f,	0.0f, WindowSize.y, 0.0f
+	};
+
+	BIT_FLOAT32 VertexTextures[ 12 ] =
+	{
+		0.0f, 0.0f,		1.0f, 0.0f,		1.0f, 1.0f,	
+		0.0f, 0.0f,		1.0f, 1.0f,		0.0f, 1.0f
+	};
+
+	// SLOW WAY 
+
+
+	if( pFullscreenVertexObject->AddVertexBuffer( VertexPositions, 3, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not add vertex position buffer to the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}
+	if( pFullscreenVertexObject->AddVertexBuffer( VertexTextures, 2, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not add vertex texture buffer to the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}
+
+	if( pFullscreenVertexObject->Load( 2, 3 ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}
+
+
+	// Load the fullscreen vertex object
+	/*if( pFullscreenVertexObject->LoadFullscreenQuad( WindowSize ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}*/
+
+
+
+	// Fullscreen shaders shaders
+
+	// Shader sources
+	static const std::string VertexSource =
+		"#version 330 \n"
+		"precision highp float; \n"
+
+		"in vec3 Position; \n"
+		"in vec2 Texture; \n"
+		"out vec2 out_Texture; \n"
+
+		"uniform mat4 ProjectionMatrix; \n"
+
+		"void main(void) \n"
+		"{ \n"
+
+		// Set some out values
+		"	out_Texture = Texture; \n"
+
+		// Set the output position
+		"	gl_Position = ProjectionMatrix * vec4( Position, 1.0 ); \n"
+
+		"} \n";
+
+	static const std::string FragmentSource =
+		"#version 330 \n"
+		"precision highp float; \n"
+
+		"in vec2 out_Texture; \n"
+		"out vec4 out_Color; \n"
+		"uniform sampler2D ColorTexture; \n"
+
+		"void main(void) \n"
+		"{ \n"
+		// Calculate the lighting
+		"	vec4 TextureColor = texture2D( ColorTexture, out_Texture ); \n"
+		// Set the output color
+		"	out_Color.xyz = TextureColor.xyz; \n"
+		"	out_Color.a = 1.0; \n"
+		"} \n";
+
+	// Load the shaders
+	// Create the vertex and fragment shaders
+	if( ( pFullscreenVertexShader = pGraphicDevice->CreateShader( Bit::Shader::Vertex ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the fullscreen vertex shader\n" );
+		return BIT_ERROR;
+	}
+	if( ( pFullscreenFragmentShader = pGraphicDevice->CreateShader( Bit::Shader::Fragment ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the fullscreen vertex shader\n" );
+		return BIT_ERROR;
+	}
+
+	// Set the sources
+	pFullscreenVertexShader->SetSource( VertexSource );
+	pFullscreenFragmentShader->SetSource( FragmentSource );
+
+	// Compile the shaders
+	if( pFullscreenVertexShader->Compile( ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not compile the fullscreen vertex shader\n" );
+		return BIT_ERROR;
+	}
+	if( pFullscreenFragmentShader->Compile( ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not compile the fullscreen fragment shader\n" );
+		return BIT_ERROR;
+	}
+
+
+	// Create the shader program
+	if( ( pFullscreenShaderProgram = pGraphicDevice->CreateShaderProgram( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the fullscreen shader program\n" );
+		return BIT_ERROR;
+	}
+
+	// Attach the shaders
+	if( pFullscreenShaderProgram->AttachShaders( pFullscreenVertexShader ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not attach the fullscreen vertex shader\n" );
+		return BIT_ERROR;
+	}
+	if( pFullscreenShaderProgram->AttachShaders( pFullscreenFragmentShader ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not attach the fullscreen fragment shader\n" );
+		return BIT_ERROR;
+	}
+
+	// Set attribute locations
+	pFullscreenShaderProgram->SetAttributeLocation( "Position", 0 );
+	pFullscreenShaderProgram->SetAttributeLocation( "Texture", 1 );
+	
+
+	// Link the shaders
+	if( pFullscreenShaderProgram->Link( ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not link the fullscreen shader program\n" );
+		return BIT_ERROR;
+	}
+
+	// Set uniforms
+	pFullscreenShaderProgram->Bind( );
+
+	Bit::Matrix4x4 OrthographicMatrix;
+	OrthographicMatrix.Orthographic( 0.0f, WindowSize.x, 0.0f, WindowSize.y, -1.0f, 1.0f );
+
+	pFullscreenShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix", OrthographicMatrix );
+	pFullscreenShaderProgram->SetUniform1i( "ColorTexture", 0 );
+
+	pFullscreenShaderProgram->Unbind( );
+
+	return BIT_OK;
+}
+
+BIT_UINT32 LoadShadowData( )
+{
+	// Shadow texture
+
+	// Create the shadow texture
+	if( ( pShadowDepthTexture = pGraphicDevice->CreateTexture( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the shadow texture\n" );
+		return BIT_ERROR;
+	}
+
+	// Load the shadow texture
+	if( pShadowDepthTexture->Load( WindowSize, BIT_DEPTH, BIT_DEPTH, BIT_TYPE_FLOAT32, BIT_NULL ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the shadow texture\n" );
+		return BIT_ERROR;
+	}
+	// Set The texture filters
+	Bit::Texture::eFilter TextureFilters[ ] =
+	{
+		Bit::Texture::Filter_Min, Bit::Texture::Filter_Nearest,
+		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Nearest,
+		Bit::Texture::Filter_None, Bit::Texture::Filter_None
+	};
+	if( pShadowDepthTexture->SetFilters( TextureFilters ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not set the shadow depth texture filters\n" );
+		return BIT_ERROR;
+	}
+
+
+	
+	// Shadow framebuffer
+
+	// Create the shadow framebuffer
+	if( ( pShadowFramebuffer = pGraphicDevice->CreateFramebuffer( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the shadow framebuffer\n" );
+		return BIT_ERROR;
+	}
+
+	// Attach the depth shadow texture to the framebuffer
+	if( pShadowFramebuffer->Attach( pShadowDepthTexture ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not attach the shadow texture to the shadow framebuffer\n" );
+		return BIT_ERROR;
+	}
+
+
+	// Shadow shader
+
+	// Shader sources
+	static const std::string VertexSource =
+		"#version 330 \n"
+		"precision highp float; \n"
+
+		"in vec3 Position; \n"
+		"uniform mat4 ProjectionMatrix; \n"
+		"uniform mat4 ViewMatrix; \n"
+
+		"void main(void) \n"
+		"{ \n"
+
+		// Set the output position
+		"	gl_Position = ProjectionMatrix * ViewMatrix * vec4( Position, 1.0 ); \n"
+
+		"} \n";
+
+	static const std::string FragmentSource =
+		"#version 330 \n"
+		"precision highp float; \n"
+
+		"out vec4 out_Color; \n"
+
+		"void main(void) \n"
+		"{ \n"
+		"	out_Color.a = 1.0; \n"
+		"} \n";
+
+	// Load the shaders
+	// Create the vertex and fragment shaders
+	if( ( pShadowVertexShader = pGraphicDevice->CreateShader( Bit::Shader::Vertex ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the shadow vertex shader\n" );
+		return BIT_ERROR;
+	}
+	if( ( pShadowFragmentShader = pGraphicDevice->CreateShader( Bit::Shader::Fragment ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the shadow vertex shader\n" );
+		return BIT_ERROR;
+	}
+
+	// Set the sources
+	pShadowVertexShader->SetSource( VertexSource );
+	pShadowFragmentShader->SetSource( FragmentSource );
+
+	// Compile the shaders
+	if( pShadowVertexShader->Compile( ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not compile the shadow vertex shader\n" );
+		return BIT_ERROR;
+	}
+	if( pShadowFragmentShader->Compile( ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not compile the shadow fragment shader\n" );
+		return BIT_ERROR;
+	}
+
+
+	// Create the shader program
+	if( ( pShadowShaderProgram = pGraphicDevice->CreateShaderProgram( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the shadow shader program\n" );
+		return BIT_ERROR;
+	}
+
+	// Attach the shaders
+	if( pShadowShaderProgram->AttachShaders( pShadowVertexShader ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not attach the shadow vertex shader\n" );
+		return BIT_ERROR;
+	}
+	if( pShadowShaderProgram->AttachShaders( pShadowFragmentShader ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not attach the shadow fragment shader\n" );
+		return BIT_ERROR;
+	}
+
+	// Set attribute locations
+	pShadowShaderProgram->SetAttributeLocation( "Position", 0 );
+	
+	// Link the shaders
+	if( pShadowShaderProgram->Link( ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not link the shadow shader program\n" );
+		return BIT_ERROR;
+	}
+
+	// Set uniforms
+	pShadowShaderProgram->Bind( );
+	pShadowShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix",
+		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_Projection ) );
+	pShadowShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ShadowViewMatrix );
+	pShadowShaderProgram->Unbind( );
+
+	
+
+	return BIT_OK;
+}
+
+BIT_UINT32 InitializeShadowMap( )
+{
+	// Bind the shadow framebuffer
+	pShadowFramebuffer->Bind( );
+	pGraphicDevice->ClearDepth( );
+	pGraphicDevice->EnableFaceCulling( Bit::GraphicDevice::Culling_FrontFace );
+
+	pShadowShaderProgram->Bind( );
+
+	// Render the level model
+	pLevelModel->Render( Bit::VertexObject::RenderMode_Triangles );
+
+	pShadowShaderProgram->Unbind( );
+
+	// Finally unbind the shadow framebuffer
+	pShadowFramebuffer->Unbind( );
+
+	pGraphicDevice->DisableFaceCulling( );
 	
 	return BIT_OK;
 }
