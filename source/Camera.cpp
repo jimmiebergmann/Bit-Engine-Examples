@@ -171,9 +171,32 @@ void Camera::SetPosition( const Bit::Vector3_f32 p_Position )
 	m_Position = p_Position;
 }
 
-void Camera::SetDirection( const Bit::Vector3_f32 p_Direction )
+void Camera::SetDirection( Bit::Vector3_f32 p_Direction )
 {
-	m_Direction = p_Direction.Normal( );
+	// normalize the direction
+	p_Direction.Normalize( );
+
+	// Calculate the Y angle ( vertical spinning, (360 degrees) )
+	m_CameraAngles.y = Bit::Vector3_f32::AngleBetweenVectors( Bit::Vector3_f32( p_Direction.x, 0.0f, p_Direction.y ), Bit::Vector3_f32( 0.0f, 1.0f, 0.0f ) );
+
+	// We have to fix the 0 to 180 degree period by adding 180.
+	if( p_Direction.x < 0.0f )
+	{
+		m_CameraAngles.y += 180.0f;
+	}
+
+	// Calculate the X angle ( camera up and down )
+	m_CameraAngles.x = Bit::Vector3_f32::AngleBetweenVectors( p_Direction, Bit::Vector3_f32( p_Direction.x, 0.0f, p_Direction.y ) );
+
+	if( p_Direction.y < 0.0f )
+	{
+		m_CameraAngles.x = -m_CameraAngles.x;
+	}
+
+
+
+
+	m_Direction = p_Direction;
 	CalculateDirectionFlank( );
 }
 
@@ -200,6 +223,11 @@ Bit::Vector3_f32 Camera::GetPosition( ) const
 Bit::Vector3_f32 Camera::GetDirection( ) const
 {
 	return m_Direction;
+}
+
+Bit::Vector2_f32 Camera::GetAngles( ) const
+{
+	return m_CameraAngles;
 }
 
 // Private functions
