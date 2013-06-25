@@ -44,7 +44,7 @@ Bit::Framebuffer * pShadowFramebuffer = BIT_NULL;
 Bit::ShaderProgram * pShadowShaderProgram = BIT_NULL;
 Bit::Shader * pShadowVertexShader = BIT_NULL;
 Bit::Shader * pShadowFragmentShader = BIT_NULL;
-Bit::Vector3_f32 LightPosition( 24.0f, 13.0f, 9.0f );
+Bit::Vector3_f32 LightPosition( 24.0f, 11.0f, 9.0f );
 Bit::Vector3_f32 LightDirection( -0.817f, -0.508f, -0.271f );
 Bit::Matrix4x4 ShadowViewMatrix;
 Bit::Matrix4x4 BiasMatrix;
@@ -729,7 +729,7 @@ BIT_UINT32 LoadLevelData( )
 
 		"	float ShadowValue = 0.0; \n"
 
-		"	for( float x = -0.001; x <= 0.001; x += 0.0005 ) \n"
+		"	for( float x = -0.0005; x <= 0.0005; x += 0.0001 ) \n"
 		"	{ \n"
 		"		for( float y = -0.0005; y <= 0.0005; y += 0.0001 ) \n"
 		"		{ \n"
@@ -743,20 +743,7 @@ BIT_UINT32 LoadLevelData( )
 
 		"	} \n"
 
-		"	ShadowValue /= 64.0; \n"
-
-
-		/*"	vec4 ShadowColor = texture2D( ShadowTexture, LightVertexPosition2.xy ); \n"
-
-		"	float ShadowValue; \n"
-		"	if( ShadowColor.r >= LightVertexPosition2.z ) \n"
-		"		ShadowValue = 1.0; \n"
-		"	else \n"
-		"		ShadowValue = 0.0; \n"*/
-
-	
-		//"float ShadowValue = 1.0; \n"
-
+		"	ShadowValue /= 100.0; \n"
 
 
 		"	vec3 LightDirection = normalize( vec3( LightPosition - out_Position ) ); \n"
