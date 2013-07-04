@@ -1,11 +1,7 @@
+#include <Bit/System.hpp>
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
-#include <Bit/Graphics/Image.hpp>
-#include <Bit/Graphics/ModelOBJ.hpp>
-#include <Bit/Graphics/ShaderProgram.hpp>
 #include <Bit/System/Timer.hpp>
-#include <Bit/System.hpp>
-#include <Bit/System/Vector3.hpp>
 #include <Bit/System/MatrixManager.hpp>
 #include <Bit/System/ResourceManager.hpp>
 #include <Bit/System/Debugger.hpp>
@@ -15,6 +11,10 @@
 // Window/graphic device
 Bit::Window * pWindow = BIT_NULL;
 Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
+
+// Setting varialbes
+Bit::Vector2_ui32 WindowSize( 1600, 1000 );
+BIT_BOOL UseNormalMapping = BIT_TRUE;
 
 // Level variables
 const std::string LevelModelPath = "../../../../Sponza/sponza.obj";
@@ -28,9 +28,14 @@ Camera Camera;
 Bit::Vector2_si32 MousePosition( 0, 0 );
 Bit::Vector2_si32 MouseLockPosition( 500, 500 );
 
-// Setting varialbes
-Bit::Vector2_ui32 WindowSize( 1600, 1000 );
-BIT_BOOL UseNormalMapping = BIT_TRUE;
+// Fullscreen rendering
+Bit::Framebuffer * pFramebuffer = BIT_NULL;
+Bit::Texture * pColorTexture = BIT_NULL;
+Bit::Texture * pDepthTexture = BIT_NULL;
+Bit::VertexObject * pFullscreenVertexObject = BIT_NULL;
+
+// Post-Processing varaibles
+Bit::PostProcessingBloom * pPostProcessingBloom = BIT_NULL;
 
 // Global functions
 int CloseApplication( const int p_Code );
@@ -38,6 +43,8 @@ void InitializeMatrixManager( );
 void InitializeCamera( );
 BIT_UINT32 CreateWindow( );
 BIT_UINT32 CreateGraphicDevice( );
+BIT_UINT32 CreateFullscreenRendering( );
+BIT_UINT32 CreatePostProcessing( );
 BIT_UINT32 CreateModel( );
 BIT_UINT32 CreateModelShader( );
 
@@ -59,6 +66,8 @@ int main( int argc, char ** argv )
 	// Initialize the application
 	if( CreateWindow( ) != BIT_OK ||
 		CreateGraphicDevice( ) != BIT_OK ||
+		CreateFullscreenRendering( ) != BIT_OK ||
+		CreatePostProcessing( ) != BIT_OK ||
 		CreateModel( ) != BIT_OK  ||
 		CreateModelShader( ) != BIT_OK )
 	{
@@ -247,6 +256,9 @@ int main( int argc, char ** argv )
 			Camera.RotateLeft( abs( CameraDiffs.x ) );
 		}
 
+		// Bind the framebuffer
+		pFramebuffer->Bind( );
+		pGraphicDevice->EnableDepthTest( );
 
 		// Clear the buffers
 		pGraphicDevice->ClearColor( );
@@ -267,6 +279,15 @@ int main( int argc, char ** argv )
 		// Unbind the shader program
 		pShaderProgram_Model->Unbind( );
 
+		// Unbind the framebuffer (binding the standard framebuffer)
+		pFramebuffer->Unbind( );
+
+		// Post-processing
+		pGraphicDevice->DisableDepthTest( );
+		pGraphicDevice->ClearColor( );
+
+		// Apply bloom
+		pPostProcessingBloom->Process( );
 
 		// Present the buffers
 		pGraphicDevice->Present( );
@@ -281,6 +302,8 @@ int CloseApplication( const int p_Code )
 {
 	// Release the resource manager
 	Bit::ResourceManager::Release( );
+
+
 
 	if( pLevelModel )
 	{
@@ -304,6 +327,36 @@ int CloseApplication( const int p_Code )
 	{
 		delete pFragmentShader_Model;
 		pFragmentShader_Model = BIT_NULL;
+	}
+	
+	if( pPostProcessingBloom )
+	{
+		delete pPostProcessingBloom;
+		pPostProcessingBloom = BIT_NULL;
+	}
+
+	if( pFramebuffer )
+	{
+		delete pFramebuffer;
+		pFramebuffer = BIT_NULL;
+	}
+
+	if( pColorTexture )
+	{
+		delete pColorTexture;
+		pColorTexture = BIT_NULL;
+	}
+
+	if( pDepthTexture )
+	{
+		delete pDepthTexture;
+		pDepthTexture = BIT_NULL;
+	}
+
+	if( pFullscreenVertexObject )
+	{
+		delete pFullscreenVertexObject;
+		pFullscreenVertexObject = BIT_NULL;
 	}
 
 	if( pGraphicDevice )
@@ -425,6 +478,146 @@ BIT_UINT32 CreateGraphicDevice( )
 
 	return BIT_OK;
 }
+
+BIT_UINT32 CreateFullscreenRendering( )
+{
+	// Create the textures
+	if( ( pColorTexture = pGraphicDevice->CreateTexture( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the fullscreen color texture\n" );
+		return BIT_ERROR;
+	}
+
+	if( ( pDepthTexture = pGraphicDevice->CreateTexture( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the fullscreen depth texture\n" );
+		return BIT_ERROR;
+	}
+
+	// Load the textures
+	if( pColorTexture->Load( WindowSize, BIT_RGB, BIT_RGB, BIT_TYPE_UCHAR8, BIT_NULL ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the fullscreen color texture\n" );
+		return BIT_ERROR;
+	}
+
+	if( pDepthTexture->Load( WindowSize, BIT_DEPTH, BIT_DEPTH, BIT_TYPE_FLOAT32, BIT_NULL ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the fullscreen depth texture\n" );
+		return BIT_ERROR;
+	}
+
+	// Set texture filters
+	Bit::Texture::eFilter TextureFilters[ ] =
+	{
+		Bit::Texture::Filter_Min, Bit::Texture::Filter_Nearest,
+		Bit::Texture::Filter_Mag, Bit::Texture::Filter_Nearest,
+		Bit::Texture::Filter_Wrap_X, Bit::Texture::Filter_Repeat,
+		Bit::Texture::Filter_Wrap_Y, Bit::Texture::Filter_Repeat,
+		Bit::Texture::Filter_None, Bit::Texture::Filter_None
+	};
+
+	if( pColorTexture->SetFilters( TextureFilters ) != BIT_OK )	
+	{
+		bitTrace( "[Error] Can not set the fullscreen color texture filers\n" );
+		return BIT_ERROR;
+	}
+
+	if( pDepthTexture->SetFilters( TextureFilters ) != BIT_OK )	
+	{
+		bitTrace( "[Error] Can not set the fullscreen depth texture filers\n" );
+		return BIT_ERROR;
+	}
+
+
+	// Create the frame buffer
+	if( ( pFramebuffer = pGraphicDevice->CreateFramebuffer( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the framebuffer texture\n" );
+		return BIT_ERROR;
+	}
+
+	// Attach the texture to the framebuffer
+	if( pFramebuffer->Attach( pColorTexture ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not create attach the color texture to the framebuffer\n" );
+		return BIT_ERROR;
+	}
+
+	if( pFramebuffer->Attach( pDepthTexture ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not create attach the depth texture to the framebuffer\n" );
+		return BIT_ERROR;
+	}
+
+	// Create the fullscreen vertex object
+	if( ( pFullscreenVertexObject = pGraphicDevice->CreateVertexObject( ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}
+
+	// Load the fullscreen vertex object
+	
+	BIT_FLOAT32 VertexPositions[ 18 ] =
+	{
+		0.0f, 0.0f, 0.0f,	WindowSize.x, 0.0f, 0.0f,		WindowSize.x, WindowSize.y, 0.0f,
+		0.0f, 0.0f, 0.0f,	WindowSize.x, WindowSize.y, 0.0f,	0.0f, WindowSize.y, 0.0f
+	};
+
+	BIT_FLOAT32 VertexTextures[ 12 ] =
+	{
+		0.0f, 0.0f,		1.0f, 0.0f,		1.0f, 1.0f,	
+		0.0f, 0.0f,		1.0f, 1.0f,		0.0f, 1.0f
+	};
+
+	// SLOW WAY 
+
+
+	if( pFullscreenVertexObject->AddVertexBuffer( VertexPositions, 3, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not add vertex position buffer to the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}
+	if( pFullscreenVertexObject->AddVertexBuffer( VertexTextures, 2, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not add vertex texture buffer to the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}
+
+	if( pFullscreenVertexObject->Load( 2, 3 ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}
+	/*if( pFullscreenVertexObject->LoadFullscreenQuad( WindowSize ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the fullscreen vertex object\n" );
+		return BIT_ERROR;
+	}*/
+
+	return BIT_OK;
+}
+
+BIT_UINT32 CreatePostProcessing( )
+{
+	// Create the bloom effect
+	if( ( pPostProcessingBloom = pGraphicDevice->CreatePostProcessingBloom( pFullscreenVertexObject, pColorTexture ) ) == BIT_NULL )
+	{
+		bitTrace( "[Error] Can not create the bloom post-processing effect.\n" );
+		return BIT_ERROR;
+	}
+
+	// Load the bloom effect
+	if( pPostProcessingBloom->Load( 0.3f, 2, 1.5f ) != BIT_OK )
+	{
+		bitTrace( "[Error] Can not load the bloom post-processing effect.\n" );
+		return BIT_ERROR;
+	}
+
+	return BIT_OK;
+}
+
 
 BIT_UINT32 CreateModel( )
 {
