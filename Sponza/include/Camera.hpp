@@ -33,6 +33,15 @@ class Camera
 
 public:
 
+	// Public enums
+	enum eMovement
+	{
+		Left = 0,
+		Right = 1,
+		Forward = 2,
+		Backward = 3
+	};
+
 	// Constructor
 	Camera( );
 
@@ -41,10 +50,7 @@ public:
 	void MoveBackwards( );
 	void MoveLeft( );
 	void MoveRight( );
-	void RotateRight( BIT_FLOAT32 p_Amount );
-	void RotateLeft( BIT_FLOAT32 p_Amount );
-	void RotateUp( BIT_FLOAT32 p_Amount );
-	void RotateDown( BIT_FLOAT32 p_Amount );
+	void Rotate( Bit::Vector2_si32 p_Directions );
 	BIT_BOOL Update( const BIT_FLOAT64 p_DeltaTime );
 	void UpdateMatrix( );
 
@@ -52,33 +58,35 @@ public:
 	void SetPosition( const Bit::Vector3_f32 p_Position );
 	void SetDirection( Bit::Vector3_f32 p_Direction );
 	void SetMovementSpeed( const BIT_FLOAT32 p_Speed );
-	void SetEyeSpeed( const BIT_FLOAT32 p_Speed );
+	void SetRotationSpeed( const BIT_FLOAT32 p_Speed );
 
 	// Get functions
 	Bit::Matrix4x4 GetMatrix( ) const;
 	Bit::Vector3_f32 GetPosition( ) const;
 	Bit::Vector3_f32 GetDirection( ) const;
-	Bit::Vector2_f32 GetAngles( ) const;
+	Bit::Vector3_f32 GetDirectionFlank( ) const;
+	Bit::Vector3_f32 GetDirectionUp( ) const;
+	BIT_FLOAT32 GetMovementSpeed( ) const;
+	BIT_FLOAT32 GetRotationSpeed( ) const;
 
 private:
 
 	// Private functions
 	void CalculateDirectionFlank( );
+	void CalculateDirectionUp( );
+
+
 
 	// Private variables
+	BIT_BOOL m_MovementFlags[ 4 ];
 	Bit::Matrix4x4 m_Matrix;
 	Bit::Vector3_f32 m_Position;
 	Bit::Vector3_f32 m_Direction;
 	Bit::Vector3_f32 m_DirectionFlank;
-	Bit::Vector2_f32 m_CameraAngles;
+	Bit::Vector3_f32 m_DirectionUp;
+	Bit::Vector2_si32 m_RotationDirections;
 	BIT_FLOAT32 m_MovementSpeed;
-	BIT_FLOAT32 m_EyeSpeed;
-
-	// Update variables
-	BIT_BOOL m_UpdatePosition;
-	BIT_BOOL m_UpdateDirection;
-	Bit::Vector3_f32 m_NewMovementDirection;
-	Bit::Vector2_f32 m_NewEyeDirection;
+	BIT_FLOAT32 m_RotationSpeed;
 
 };
 

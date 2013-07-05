@@ -13,7 +13,7 @@ Bit::Window * pWindow = BIT_NULL;
 Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
 
 // Setting varialbes
-Bit::Vector2_ui32 WindowSize( 1600, 1000 );
+const Bit::Vector2_ui32 WindowSize( 1600, 1000 );
 BIT_BOOL UseNormalMapping = BIT_TRUE;
 
 // Level variables
@@ -26,7 +26,10 @@ Bit::Shader * pFragmentShader_Model = BIT_NULL;
 // Camera variables
 Camera Camera;
 Bit::Vector2_si32 MousePosition( 0, 0 );
-Bit::Vector2_si32 MouseLockPosition( 500, 500 );
+Bit::Vector2_si32 PreviousMousePosition( 0, 0 );
+BIT_BOOL HoldingDownMouse = BIT_FALSE;
+const BIT_UINT32 RotateMouseButton = 1;
+
 
 // Fullscreen rendering
 Bit::Framebuffer * pFramebuffer = BIT_NULL;
@@ -90,11 +93,11 @@ int main( int argc, char ** argv )
 		pWindow->Update( );
 
 		// Mouse lock
-		if( pWindow->IsFocused( ) )
+		/*if( pWindow->IsFocused( ) )
 		{
 			MousePosition = pWindow->GetCursorScreenPosition(  );
 			pWindow->SetCursorPosition( MouseLockPosition );
-		}
+		}*/
 
 		Bit::Event Event;
 		while( pWindow->PollEvent( Event ) )
@@ -216,17 +219,36 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::MouseMoved:
 				{
-					continue;
+					// Update the mouse position if we are holding down the mouse button
+					if( HoldingDownMouse )
+					{
+						MousePosition = Event.MousePosition;
+					}
 				}
 				break;
 				case Bit::Event::MouseButtonPressed:
 				{
-					continue;
+					if( Event.Button == RotateMouseButton )
+					{
+						// Set the mouse position
+						MousePosition = Event.MousePosition;
+						
+						// Set the previous mouse position as well if we just pressed the mouse button
+						if( !HoldingDownMouse )
+						{
+							PreviousMousePosition = Event.MousePosition;
+						}
+
+						HoldingDownMouse = BIT_TRUE;
+					}
 				}
 				break;
 				case Bit::Event::MouseButtonReleased:
 				{
-					continue;
+					if( Event.Button == RotateMouseButton )
+					{
+						HoldingDownMouse = BIT_FALSE;
+					}
 				}
 				break;
 				default:
@@ -234,9 +256,20 @@ int main( int argc, char ** argv )
 			}
 		}
 
+		// Is the mouse button pressed?
+		if( HoldingDownMouse )
+		{
+			// Calculate the mouse difference from the last update
+			Bit::Vector2_si32 MouseDiff = MousePosition - PreviousMousePosition;
+			PreviousMousePosition = MousePosition;
+			
+			// Rotate the camera
+			Camera.Rotate( MouseDiff );
+		}
+
 
 		// Update the camera angles
-		Bit::Vector2_f32 CameraDiffs;
+	/*	Bit::Vector2_f32 CameraDiffs;
 		CameraDiffs.x = (BIT_FLOAT32)MousePosition.x - (BIT_FLOAT32)MouseLockPosition.x;
 		CameraDiffs.y = (BIT_FLOAT32)MousePosition.y - (BIT_FLOAT32)MouseLockPosition.y;
 		if( CameraDiffs.y > 0.0f )
@@ -254,7 +287,7 @@ int main( int argc, char ** argv )
 		else if( CameraDiffs.x < 0.0f )
 		{
 			Camera.RotateLeft( abs( CameraDiffs.x ) );
-		}
+		}*/
 
 		// Bind the framebuffer
 		pFramebuffer->Bind( );
@@ -394,7 +427,7 @@ void InitializeCamera( )
 	Camera.SetPosition( Bit::Vector3_f32( -900.0f, 600.0f, -200.0f ) );
 	Camera.SetDirection( Bit::Vector3_f32( 1.0f, -0.5f, 0.4f ).Normal( ) );
 	Camera.SetMovementSpeed( 1000.0f );
-	Camera.SetEyeSpeed( 15.0f );
+	Camera.SetRotationSpeed( 15.0f );
 	Camera.UpdateMatrix( );
 
 	// Set the matrix to the matrix manager
@@ -424,13 +457,13 @@ BIT_UINT32 CreateWindow( )
 	}
 
 	// Calculate the mouse lock position
-	Bit::Vector2_si32 WindowPosition = pWindow->GetPosition( );
-	MouseLockPosition = WindowPosition + ( pWindow->GetSize( ) / 2 );
+	//Bit::Vector2_si32 WindowPosition = pWindow->GetPosition( );
+	//MouseLockPosition = WindowPosition + ( pWindow->GetSize( ) / 2 );
 
 	// Change the window's title
-	pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: åäö ÅÄÖ" );
-	pWindow->ShowCursor( BIT_FALSE );
-	pWindow->SetCursorPosition( MouseLockPosition );
+	pWindow->SetTitle( "Sponza Scene" );
+	//pWindow->ShowCursor( BIT_FALSE );
+	//pWindow->SetCursorPosition( MouseLockPosition );
 
 	return BIT_OK;
 }
@@ -609,7 +642,7 @@ BIT_UINT32 CreatePostProcessing( )
 	}
 
 	// Load the bloom effect
-	if( pPostProcessingBloom->Load( 0.3f, 2, 1.5f ) != BIT_OK )
+	if( pPostProcessingBloom->Load( 0.15f, 2, 1.0f ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the bloom post-processing effect.\n" );
 		return BIT_ERROR;

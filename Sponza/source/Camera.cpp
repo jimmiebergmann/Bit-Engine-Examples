@@ -29,141 +29,135 @@
 
 // Constructor
 Camera::Camera( ) :
-	m_Position( 0.0f, 0.0f, 0.0f ),
+	m_Position( 0.0f ),
 	m_Direction( 0.0f, 0.0f, 1.0f ),
 	m_DirectionFlank( 1.0f, 0.0f, 0.0f ),
-	m_CameraAngles( 0.0f, 0.0f ),
+	m_DirectionUp( 0.0f, 1.0f, 0.0f ),
+	m_RotationDirections( 0, 0 ),
 	m_MovementSpeed( 1.0f ),
-	m_EyeSpeed( 1.0f ),
-	m_UpdatePosition( BIT_FALSE ),
-	m_UpdateDirection( BIT_FALSE ),
-	m_NewMovementDirection( 0.0f, 0.0f, 0.0f ),
-	m_NewEyeDirection( 0.0f, 0.0f )
+	m_RotationSpeed( 1.0f )
 {
 	CalculateDirectionFlank( );
+	UpdateMatrix( );
+
+	// Clear the movement flags
+	for( BIT_MEMSIZE i = 0; i < 4; i++ )
+	{
+		m_MovementFlags[ i ] = BIT_FALSE;
+	}
 }
 
 
 // Public functions
 void Camera::MoveForwards( )
 {
-	m_UpdatePosition = BIT_TRUE;
-	m_NewMovementDirection += m_Direction;
+	m_MovementFlags[ Forward ] = BIT_TRUE;
 }
 
 void Camera::MoveBackwards( )
 {
-	m_UpdatePosition = BIT_TRUE;
-	m_NewMovementDirection -= m_Direction;
+	m_MovementFlags[ Backward ] = BIT_TRUE;
 }
 
 void Camera::MoveLeft( )
 {
-	m_UpdatePosition = BIT_TRUE;
-	m_NewMovementDirection -= m_DirectionFlank;
+	m_MovementFlags[ Left ] = BIT_TRUE;
 }
 
 void Camera::MoveRight( )
 {
-	m_UpdatePosition = BIT_TRUE;
-	m_NewMovementDirection += m_DirectionFlank;
+	m_MovementFlags[ Right ] = BIT_TRUE;
 }
 
-void Camera::RotateRight( BIT_FLOAT32 p_Amount )
+void Camera::Rotate( Bit::Vector2_si32 p_Directions )
 {
-	m_UpdateDirection = BIT_TRUE;
-	m_NewEyeDirection.y -= p_Amount;
+	m_RotationDirections = p_Directions;
 }
-
-void Camera::RotateLeft( BIT_FLOAT32 p_Amount )
-{
-	m_UpdateDirection = BIT_TRUE;
-	m_NewEyeDirection.y += p_Amount;
-}
-
-void Camera::RotateUp( BIT_FLOAT32 p_Amount )
-{
-	m_UpdateDirection = BIT_TRUE;
-	m_NewEyeDirection.x -= p_Amount;
-}
-
-void Camera::RotateDown( BIT_FLOAT32 p_Amount )
-{
-	m_UpdateDirection = BIT_TRUE;
-	m_NewEyeDirection.x += p_Amount;
-}
-
 
 BIT_BOOL Camera::Update( const BIT_FLOAT64 p_DeltaTime )
 {
-	// Update the position
-	if( m_UpdatePosition )
+	// Make sure that we aren't moving in two opposite direcions at the the same time
+	if( m_MovementFlags[ Forward ] && m_MovementFlags[ Backward ] )
 	{
-		// Normalize the new direction
-		m_NewMovementDirection.Normalize( );
-
-		// Set the new position
-		m_Position += m_NewMovementDirection * m_MovementSpeed * p_DeltaTime;
-
-		// Reset the mew movement direction.
-		m_NewMovementDirection.x = 0.0f;
-		m_NewMovementDirection.y = 0.0f;
-		m_NewMovementDirection.z = 0.0f;
+		m_MovementFlags[ Forward ] = m_MovementFlags[ Backward ] = BIT_FALSE;
 	}
 
-	// Update the direction
-	if( m_UpdateDirection )
+	if( m_MovementFlags[ Left ] && m_MovementFlags[ Right ] )
 	{
-		m_CameraAngles.x += m_NewEyeDirection.x * m_EyeSpeed * p_DeltaTime;
-		m_CameraAngles.y += m_NewEyeDirection.y * m_EyeSpeed * p_DeltaTime;
+		m_MovementFlags[ Left ] = m_MovementFlags[ Right ] = BIT_FALSE;
+	}
 
-		if( m_CameraAngles.x >= 89.99f ) m_CameraAngles.x = 89.99f;
-		if( m_CameraAngles.x <= -89.99f ) m_CameraAngles.x = -89.99f;
+	// Create a new movement flag in order to track if we should update the matrix
+	BIT_BOOL MatrixUpdate = BIT_FALSE;
+	
+	// Check which direction we are moving in.
+	if( m_MovementFlags[ Forward ] )
+	{
+		m_Position += m_Direction * m_MovementSpeed * p_DeltaTime;
+		MatrixUpdate = BIT_TRUE;
+	}
+	else if( m_MovementFlags[ Backward ] )
+	{
+		m_Position -= m_Direction * m_MovementSpeed * p_DeltaTime;
+		MatrixUpdate = BIT_TRUE;
+	}
 
-		if( m_CameraAngles.y >= 360.0f ) m_CameraAngles.y -= 360.0f;
-		if( m_CameraAngles.y <= 0.0f ) m_CameraAngles.y += 360.0f;
+	if( m_MovementFlags[ Left ] )
+	{
+		m_Position -= m_DirectionFlank * m_MovementSpeed * p_DeltaTime;
+		MatrixUpdate = BIT_TRUE;
+	}
+	else if( m_MovementFlags[ Right ] )
+	{
+		m_Position += m_DirectionFlank * m_MovementSpeed * p_DeltaTime;
+		MatrixUpdate = BIT_TRUE;
+	}
 
-		// Update the direction flank
+	// Update the rotation
+	if( m_RotationDirections.x )
+	{
+		//m_Direction.RotateY( m_RotationDirections.x );
+		m_Direction.Rotate( m_RotationDirections.x, m_DirectionUp.x, m_DirectionUp.y, m_DirectionUp.z );
+		m_Direction.Normalize( );
+
+		// Set the matrix update flag.
+		MatrixUpdate = BIT_TRUE;
+	}
+
+	if( m_RotationDirections.y )
+	{
+		m_Direction.Rotate( m_RotationDirections.y, m_DirectionFlank.x, m_DirectionFlank.y, m_DirectionFlank.z );
+		m_Direction.Normalize( );
+
 		CalculateDirectionFlank( );
 
-		m_NewEyeDirection.x = 0.0f;
-		m_NewEyeDirection.y = 0.0f;	
-
-		m_Direction = Bit::Vector3_f32( 0.0f, 0.0f, 1.0f );
-		m_Direction.RotateX( -m_CameraAngles.x );
-		m_Direction.RotateY( -m_CameraAngles.y );
+		// Set the matrix update flag.
+		MatrixUpdate = BIT_TRUE;
 	}
 
-	// Check if we actually changed the matrix
-	BIT_BOOL UpdateStatus = BIT_FALSE;
+
+	// Clear the movement flags and the rotation
+	for( BIT_MEMSIZE i = 0; i < 4; i++ )
+	{
+		m_MovementFlags[ i ] = BIT_FALSE;
+	}
+	m_RotationDirections.x = 0;
+	m_RotationDirections.y = 0;
 
 	// Update the matrix
-	if( m_UpdatePosition || m_UpdateDirection )
+	if( MatrixUpdate )
 	{
-		UpdateStatus = BIT_TRUE;
-
-		// Update the matrix
 		UpdateMatrix( );
 	}
 
-	// Reset the position and direction update flag
-	m_UpdatePosition = BIT_FALSE;
-	m_UpdateDirection = BIT_FALSE;
-
-	return UpdateStatus;
+	return MatrixUpdate;
 }
 
 void Camera::UpdateMatrix( )
 {
 	m_Matrix.Identity( );
-	m_Matrix.LookAt( m_Position, m_Position + m_Direction, Bit::Vector3_f32( 0.0f, 1.0f, 0.0f ) );
-	/*m_Matrix.Translate( -m_Position.x, -m_Position.y, -m_Position.z );
-	m_Matrix.RotateX( m_CameraAngles.x );
-	m_Matrix.RotateY( m_CameraAngles.y );
-	m_Matrix.Translate( m_Position.x, m_Position.y, m_Position.z );*/
-	
+	m_Matrix.LookAt( m_Position, m_Position + m_Direction, m_DirectionUp );
 }
-
 
 // Set functions
 void Camera::SetPosition( const Bit::Vector3_f32 p_Position )
@@ -173,29 +167,6 @@ void Camera::SetPosition( const Bit::Vector3_f32 p_Position )
 
 void Camera::SetDirection( Bit::Vector3_f32 p_Direction )
 {
-	// normalize the direction
-	p_Direction.Normalize( );
-
-	// Calculate the Y angle ( vertical spinning, (360 degrees) )
-	m_CameraAngles.y = Bit::Vector3_f32::AngleBetweenVectors( Bit::Vector3_f32( p_Direction.x, 0.0f, p_Direction.y ), Bit::Vector3_f32( 0.0f, 1.0f, 0.0f ) );
-
-	// We have to fix the 0 to 180 degree period by adding 180.
-	if( p_Direction.x < 0.0f )
-	{
-		m_CameraAngles.y += 180.0f;
-	}
-
-	// Calculate the X angle ( camera up and down )
-	m_CameraAngles.x = Bit::Vector3_f32::AngleBetweenVectors( p_Direction, Bit::Vector3_f32( p_Direction.x, 0.0f, p_Direction.y ) );
-
-	if( p_Direction.y < 0.0f )
-	{
-		m_CameraAngles.x = -m_CameraAngles.x;
-	}
-
-
-
-
 	m_Direction = p_Direction;
 	CalculateDirectionFlank( );
 }
@@ -204,9 +175,9 @@ void Camera::SetMovementSpeed( const BIT_FLOAT32 p_Speed )
 {
 	m_MovementSpeed = p_Speed;
 }
-void Camera::SetEyeSpeed( const BIT_FLOAT32 p_Speed )
+void Camera::SetRotationSpeed( const BIT_FLOAT32 p_Speed )
 {
-	m_EyeSpeed = p_Speed;
+	m_RotationSpeed = p_Speed;
 }
 
 // Get functions
@@ -225,13 +196,33 @@ Bit::Vector3_f32 Camera::GetDirection( ) const
 	return m_Direction;
 }
 
-Bit::Vector2_f32 Camera::GetAngles( ) const
+Bit::Vector3_f32 Camera::GetDirectionFlank( ) const
 {
-	return m_CameraAngles;
+	return m_DirectionFlank;
+}
+
+Bit::Vector3_f32 Camera::GetDirectionUp( ) const
+{
+	return m_DirectionUp;
+}
+
+BIT_FLOAT32 Camera::GetMovementSpeed( ) const
+{
+	return m_MovementSpeed;
+}
+
+BIT_FLOAT32 Camera::GetRotationSpeed( ) const
+{
+	return m_RotationSpeed;
 }
 
 // Private functions
 void Camera::CalculateDirectionFlank( )
 {
-	m_DirectionFlank = m_Direction.Cross( Bit::Vector3_f32( 0.0f, 1.0f, 0.0f ) ).Normal( );
+	m_DirectionFlank = m_Direction.Cross( m_DirectionUp ).Normal( );
+}
+
+void Camera::CalculateDirectionUp( )
+{
+	m_DirectionUp = m_Direction.Cross( -m_DirectionFlank ).Normal( );
 }
