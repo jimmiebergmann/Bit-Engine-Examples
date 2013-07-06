@@ -65,26 +65,23 @@ public:
 	Bit::Vector3_f32 GetPosition( ) const;
 	Bit::Vector3_f32 GetDirection( ) const;
 	Bit::Vector3_f32 GetDirectionFlank( ) const;
-	Bit::Vector3_f32 GetDirectionUp( ) const;
 	BIT_FLOAT32 GetMovementSpeed( ) const;
 	BIT_FLOAT32 GetRotationSpeed( ) const;
 
 private:
 
 	// Private functions
+	void CalculateDirectionsFromAngles( );
 	void CalculateDirectionFlank( );
-	void CalculateDirectionUp( );
-
-
 
 	// Private variables
 	BIT_BOOL m_MovementFlags[ 4 ];
+	Bit::Vector2_si32 m_RotationDirections;
 	Bit::Matrix4x4 m_Matrix;
 	Bit::Vector3_f32 m_Position;
 	Bit::Vector3_f32 m_Direction;
 	Bit::Vector3_f32 m_DirectionFlank;
-	Bit::Vector3_f32 m_DirectionUp;
-	Bit::Vector2_si32 m_RotationDirections;
+	Bit::Vector2_f32 m_Angles;
 	BIT_FLOAT32 m_MovementSpeed;
 	BIT_FLOAT32 m_RotationSpeed;
 

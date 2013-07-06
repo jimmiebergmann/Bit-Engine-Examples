@@ -29,11 +29,11 @@
 
 // Constructor
 Camera::Camera( ) :
+	m_RotationDirections( 0, 0 ),
 	m_Position( 0.0f ),
 	m_Direction( 0.0f, 0.0f, 1.0f ),
 	m_DirectionFlank( 1.0f, 0.0f, 0.0f ),
-	m_DirectionUp( 0.0f, 1.0f, 0.0f ),
-	m_RotationDirections( 0, 0 ),
+	m_Angles( 0.0f, 0.0f ),
 	m_MovementSpeed( 1.0f ),
 	m_RotationSpeed( 1.0f )
 {
@@ -87,8 +87,10 @@ BIT_BOOL Camera::Update( const BIT_FLOAT64 p_DeltaTime )
 		m_MovementFlags[ Left ] = m_MovementFlags[ Right ] = BIT_FALSE;
 	}
 
+
 	// Create a new movement flag in order to track if we should update the matrix
 	BIT_BOOL MatrixUpdate = BIT_FALSE;
+
 	
 	// Check which direction we are moving in.
 	if( m_MovementFlags[ Forward ] )
@@ -113,12 +115,11 @@ BIT_BOOL Camera::Update( const BIT_FLOAT64 p_DeltaTime )
 		MatrixUpdate = BIT_TRUE;
 	}
 
+
 	// Update the rotation
 	if( m_RotationDirections.x )
 	{
-		//m_Direction.RotateY( m_RotationDirections.x );
-		m_Direction.Rotate( m_RotationDirections.x, m_DirectionUp.x, m_DirectionUp.y, m_DirectionUp.z );
-		m_Direction.Normalize( );
+		m_Angles.y -= m_RotationDirections.x * m_RotationSpeed * p_DeltaTime;
 
 		// Set the matrix update flag.
 		MatrixUpdate = BIT_TRUE;
@@ -126,13 +127,20 @@ BIT_BOOL Camera::Update( const BIT_FLOAT64 p_DeltaTime )
 
 	if( m_RotationDirections.y )
 	{
-		m_Direction.Rotate( m_RotationDirections.y, m_DirectionFlank.x, m_DirectionFlank.y, m_DirectionFlank.z );
-		m_Direction.Normalize( );
-
-		CalculateDirectionFlank( );
+		m_Angles.x -= m_RotationDirections.y * m_RotationSpeed * p_DeltaTime;
 
 		// Set the matrix update flag.
 		MatrixUpdate = BIT_TRUE;
+	}
+
+	// Update the matrix
+	if( MatrixUpdate )
+	{
+		// Calculate the directions
+		CalculateDirectionsFromAngles( );
+
+		// Update the matrix
+		UpdateMatrix( );
 	}
 
 
@@ -144,19 +152,18 @@ BIT_BOOL Camera::Update( const BIT_FLOAT64 p_DeltaTime )
 	m_RotationDirections.x = 0;
 	m_RotationDirections.y = 0;
 
-	// Update the matrix
-	if( MatrixUpdate )
-	{
-		UpdateMatrix( );
-	}
 
+	// Return the matrix update state
 	return MatrixUpdate;
 }
 
 void Camera::UpdateMatrix( )
 {
+	// Rotate and translate the camera matrix
 	m_Matrix.Identity( );
-	m_Matrix.LookAt( m_Position, m_Position + m_Direction, m_DirectionUp );
+	m_Matrix.RotateX( m_Angles.x );
+	m_Matrix.RotateY( m_Angles.y );
+	m_Matrix.Translate( -m_Position.x, -m_Position.y, -m_Position.z );
 }
 
 // Set functions
@@ -166,7 +173,26 @@ void Camera::SetPosition( const Bit::Vector3_f32 p_Position )
 }
 
 void Camera::SetDirection( Bit::Vector3_f32 p_Direction )
-{
+{ 
+	// normalize the direction
+	p_Direction.Normalize( );
+
+	// Calculate the Y angle ( vertical spinning, (360 degrees) )
+	m_Angles.y = Bit::Vector3_f32::AngleBetweenVectors( Bit::Vector3_f32( p_Direction.x, 0.0f, p_Direction.z ).Normal( ), Bit::Vector3_f32( 0.0f, 0.0f, -1.0f ) );
+
+	if( p_Direction.x > 0.0f )
+	{
+		m_Angles.y = 360.0f - m_Angles.y;
+	}
+
+	// Calculate the X angle ( camera up and down )
+	m_Angles.x = Bit::Vector3_f32::AngleBetweenVectors( p_Direction, Bit::Vector3_f32( p_Direction.x, 0.0f, p_Direction.z ).Normal( ) );
+
+	if( p_Direction.y < 0.0f )
+	{
+		m_Angles.x = -m_Angles.x;
+	}
+
 	m_Direction = p_Direction;
 	CalculateDirectionFlank( );
 }
@@ -201,11 +227,6 @@ Bit::Vector3_f32 Camera::GetDirectionFlank( ) const
 	return m_DirectionFlank;
 }
 
-Bit::Vector3_f32 Camera::GetDirectionUp( ) const
-{
-	return m_DirectionUp;
-}
-
 BIT_FLOAT32 Camera::GetMovementSpeed( ) const
 {
 	return m_MovementSpeed;
@@ -217,12 +238,19 @@ BIT_FLOAT32 Camera::GetRotationSpeed( ) const
 }
 
 // Private functions
-void Camera::CalculateDirectionFlank( )
+void Camera::CalculateDirectionsFromAngles( )
 {
-	m_DirectionFlank = m_Direction.Cross( m_DirectionUp ).Normal( );
+	// Calculate the view direction
+	m_Direction = Bit::Vector3_f32( 0.0f, 0.0f, -1.0f );
+	m_Direction.RotateX( m_Angles.x );
+	m_Direction.RotateY( -m_Angles.y );
+
+	// Calculate the flank direction
+	CalculateDirectionFlank( );
 }
 
-void Camera::CalculateDirectionUp( )
+void Camera::CalculateDirectionFlank( )
 {
-	m_DirectionUp = m_Direction.Cross( -m_DirectionFlank ).Normal( );
+	m_DirectionFlank = Bit::Vector3_f32( 0.0f, 0.0f, -1.0f );
+	m_DirectionFlank.RotateY( -m_Angles.y + 90.0f );
 }
