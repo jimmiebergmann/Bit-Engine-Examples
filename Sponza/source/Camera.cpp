@@ -30,12 +30,14 @@
 // Constructor
 Camera::Camera( ) :
 	m_RotationDirections( 0, 0 ),
+	m_RotationForce( 0.0f, 0.0f ),
 	m_Position( 0.0f ),
 	m_Direction( 0.0f, 0.0f, 1.0f ),
 	m_DirectionFlank( 1.0f, 0.0f, 0.0f ),
 	m_Angles( 0.0f, 0.0f ),
 	m_MovementSpeed( 1.0f ),
-	m_RotationSpeed( 1.0f )
+	m_RotationSpeed( 1.0f ),
+	m_RotationResistance( 1.0 )
 {
 	CalculateDirectionFlank( );
 	UpdateMatrix( );
@@ -116,8 +118,79 @@ BIT_BOOL Camera::Update( const BIT_FLOAT64 p_DeltaTime )
 	}
 
 
+	// Add the rotation force
+	if( m_RotationDirections.x != 0 )
+	{
+		m_RotationForce.x += ( BIT_FLOAT32 )( m_RotationDirections.x );
+	}
+	if( m_RotationDirections.y != 0 )
+	{
+		m_RotationForce.y += ( BIT_FLOAT32 )( m_RotationDirections.y );
+	}
+
+	// Rotate by using the force
+	if( m_RotationForce.x > 0.0001f || m_RotationForce.x < -0.0001f )
+	{
+		m_Angles.y -= m_RotationForce.x * m_RotationSpeed * p_DeltaTime;
+
+		// Set the matrix update flag.
+		MatrixUpdate = BIT_TRUE;
+	}
+
+	if( m_RotationForce.y > 0.0001f || m_RotationForce.y < -0.0001f )
+	{
+		m_Angles.x -= m_RotationForce.y * m_RotationSpeed * p_DeltaTime;
+
+		// Set the matrix update flag.
+		MatrixUpdate = BIT_TRUE;
+	}
+
+	// Slow down the rotation
+	m_RotationForce.x /= 1.0f + ( p_DeltaTime * m_RotationResistance );
+	m_RotationForce.y /= 1.0f + ( p_DeltaTime * m_RotationResistance );
+
+
+	/*if( m_RotationForce.x > 0.0f )
+	{
+		m_RotationForce.x -= m_RotationResistance * p_DeltaTime;
+		if( m_RotationForce.x < 0.0f )
+		{
+			m_RotationForce.x = 0.0f;
+		}
+	}
+	else if( m_RotationForce.x < 0.0f )
+	{
+		m_RotationForce.x += m_RotationResistance * p_DeltaTime;
+		if( m_RotationForce.x > 0.0f )
+		{
+			m_RotationForce.x = 0.0f;
+		}
+	}
+
+	if( m_RotationForce.y > 0.0f )
+	{
+		m_RotationForce.y -= m_RotationResistance * p_DeltaTime;
+		if( m_RotationForce.y < 0.0f )
+		{
+			m_RotationForce.y = 0.0f;
+		}
+	}
+	else if( m_RotationForce.y < 0.0f )
+	{
+		m_RotationForce.y += m_RotationResistance * p_DeltaTime;
+		if( m_RotationForce.y > 0.0f )
+		{
+			m_RotationForce.y = 0.0f;
+		}
+	}
+*/
+
+
+
+
+
 	// Update the rotation
-	if( m_RotationDirections.x )
+	/*if( m_RotationDirections.x )
 	{
 		m_Angles.y -= m_RotationDirections.x * m_RotationSpeed * p_DeltaTime;
 
@@ -131,10 +204,10 @@ BIT_BOOL Camera::Update( const BIT_FLOAT64 p_DeltaTime )
 
 		// Set the matrix update flag.
 		MatrixUpdate = BIT_TRUE;
-	}
+	}*/
 
 	// Update the matrix
-	if( MatrixUpdate )
+	if( 1 /*MatrixUpdate*/ )
 	{
 		// Calculate the directions
 		CalculateDirectionsFromAngles( );
@@ -154,7 +227,9 @@ BIT_BOOL Camera::Update( const BIT_FLOAT64 p_DeltaTime )
 
 
 	// Return the matrix update state
-	return MatrixUpdate;
+	//return MatrixUpdate;
+
+	return BIT_TRUE;
 }
 
 void Camera::UpdateMatrix( )
@@ -204,6 +279,11 @@ void Camera::SetMovementSpeed( const BIT_FLOAT32 p_Speed )
 void Camera::SetRotationSpeed( const BIT_FLOAT32 p_Speed )
 {
 	m_RotationSpeed = p_Speed;
+}
+
+void Camera::SetRotationResistance( const BIT_FLOAT32 p_Resistance )
+{
+	m_RotationResistance = p_Resistance;
 }
 
 // Get functions

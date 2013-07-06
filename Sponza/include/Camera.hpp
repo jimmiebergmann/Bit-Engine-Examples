@@ -59,6 +59,7 @@ public:
 	void SetDirection( Bit::Vector3_f32 p_Direction );
 	void SetMovementSpeed( const BIT_FLOAT32 p_Speed );
 	void SetRotationSpeed( const BIT_FLOAT32 p_Speed );
+	void SetRotationResistance( const BIT_FLOAT32 p_Resistance );
 
 	// Get functions
 	Bit::Matrix4x4 GetMatrix( ) const;
@@ -77,6 +78,7 @@ private:
 	// Private variables
 	BIT_BOOL m_MovementFlags[ 4 ];
 	Bit::Vector2_si32 m_RotationDirections;
+	Bit::Vector2_f32 m_RotationForce;
 	Bit::Matrix4x4 m_Matrix;
 	Bit::Vector3_f32 m_Position;
 	Bit::Vector3_f32 m_Direction;
@@ -84,6 +86,8 @@ private:
 	Bit::Vector2_f32 m_Angles;
 	BIT_FLOAT32 m_MovementSpeed;
 	BIT_FLOAT32 m_RotationSpeed;
+	BIT_FLOAT32 m_RotationResistance;
+
 
 };
 

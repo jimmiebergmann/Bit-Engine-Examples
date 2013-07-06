@@ -427,7 +427,8 @@ void InitializeCamera( )
 	Camera.SetPosition( Bit::Vector3_f32( -900.0f, 600.0f, -200.0f ) );
 	Camera.SetDirection( Bit::Vector3_f32( 1.0f, -0.5f, 0.4f ).Normal( ) );
 	Camera.SetMovementSpeed( 1000.0f );
-	Camera.SetRotationSpeed( 15.0f );
+	Camera.SetRotationSpeed( 10.0f );
+	Camera.SetRotationResistance( 10.0f );
 	Camera.UpdateMatrix( );
 
 	// Set the matrix to the matrix manager
