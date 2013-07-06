@@ -60,6 +60,7 @@ public:
 	void SetMovementSpeed( const BIT_FLOAT32 p_Speed );
 	void SetRotationSpeed( const BIT_FLOAT32 p_Speed );
 	void SetRotationResistance( const BIT_FLOAT32 p_Resistance );
+	void SetRotationRollFactor( const BIT_FLOAT32 p_Roll );
 
 	// Get functions
 	Bit::Matrix4x4 GetMatrix( ) const;
@@ -68,6 +69,8 @@ public:
 	Bit::Vector3_f32 GetDirectionFlank( ) const;
 	BIT_FLOAT32 GetMovementSpeed( ) const;
 	BIT_FLOAT32 GetRotationSpeed( ) const;
+	BIT_FLOAT32 GetRotationResistance( ) const;
+	BIT_FLOAT32 GetRotationRollFactor( ) const;
 
 private:
 
@@ -87,6 +90,7 @@ private:
 	BIT_FLOAT32 m_MovementSpeed;
 	BIT_FLOAT32 m_RotationSpeed;
 	BIT_FLOAT32 m_RotationResistance;
+	BIT_FLOAT32 m_RotationRollFactor;
 
 
 };
