@@ -7,6 +7,7 @@
 #include <Bit/System/Debugger.hpp>
 #include <Bit/System/MemoryLeak.hpp>
 #include <Camera.hpp>
+#include <GUIManager.hpp>
 
 // Window/graphic device
 Bit::Window * pWindow = BIT_NULL;
@@ -30,6 +31,12 @@ Bit::Vector2_si32 PreviousMousePosition( 0, 0 );
 BIT_BOOL HoldingDownMouse = BIT_FALSE;
 const BIT_UINT32 RotateMouseButton = 1;
 
+// GUI
+GUIManager * GUI = BIT_NULL;
+GUICheckbox * Checkbox1 = BIT_NULL;
+GUICheckbox * Checkbox2 = BIT_NULL;
+GUISlider * Slider1 = BIT_NULL;
+GUISlider * Slider2 = BIT_NULL;
 
 // Fullscreen rendering
 Bit::Framebuffer * pFramebuffer = BIT_NULL;
@@ -50,6 +57,7 @@ BIT_UINT32 CreateFullscreenRendering( );
 BIT_UINT32 CreatePostProcessing( );
 BIT_UINT32 CreateModel( );
 BIT_UINT32 CreateModelShader( );
+BIT_UINT32 CreateGUI( );
 
 // Main function
 int main( int argc, char ** argv )
@@ -72,7 +80,8 @@ int main( int argc, char ** argv )
 		CreateFullscreenRendering( ) != BIT_OK ||
 		CreatePostProcessing( ) != BIT_OK ||
 		CreateModel( ) != BIT_OK  ||
-		CreateModelShader( ) != BIT_OK )
+		CreateModelShader( ) != BIT_OK ||
+		CreateGUI( ) != BIT_OK )
 	{
 		return CloseApplication( 0 );
 	}
@@ -219,6 +228,9 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::MouseMoved:
 				{
+					// Update the GUI
+					GUI->Update( Event );
+
 					// Update the mouse position if we are holding down the mouse button
 					if( HoldingDownMouse )
 					{
@@ -228,6 +240,9 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::MouseButtonPressed:
 				{
+					// Update the GUI
+					GUI->Update( Event );
+
 					if( Event.Button == RotateMouseButton )
 					{
 						// Set the mouse position
@@ -245,6 +260,9 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::MouseButtonReleased:
 				{
+					// Update the GUI
+					GUI->Update( Event );
+
 					if( Event.Button == RotateMouseButton )
 					{
 						HoldingDownMouse = BIT_FALSE;
@@ -322,6 +340,9 @@ int main( int argc, char ** argv )
 		// Apply bloom
 		pPostProcessingBloom->Process( );
 
+		// Render the GUI
+		GUI->Render( );
+
 		// Present the buffers
 		pGraphicDevice->Present( );
 	}
@@ -336,7 +357,36 @@ int CloseApplication( const int p_Code )
 	// Release the resource manager
 	Bit::ResourceManager::Release( );
 
+	if( Slider2 )
+	{
+		delete Slider2;
+		Slider2 = BIT_NULL;
+	}
 
+	if( Slider1 )
+	{
+		delete Slider1;
+		Slider1 = BIT_NULL;
+	}
+
+	if( Checkbox2 )
+	{
+		delete Checkbox2;
+		Checkbox2 = BIT_NULL;
+	}
+
+	if( Checkbox1 )
+	{
+		delete Checkbox1;
+		Checkbox1 = BIT_NULL;
+	}
+
+	if( GUI )
+	{
+		delete GUI;
+		GUI = BIT_NULL;
+	}
+	
 
 	if( pLevelModel )
 	{
@@ -427,15 +477,14 @@ void InitializeCamera( )
 	Camera.SetPosition( Bit::Vector3_f32( -900.0f, 600.0f, -200.0f ) );
 	Camera.SetDirection( Bit::Vector3_f32( 1.0f, -0.5f, 0.4f ).Normal( ) );
 	Camera.SetMovementSpeed( 1000.0f );
-	Camera.SetRotationSpeed( 5.0f );
-	Camera.SetRotationResistance( 30.0f );
+	Camera.SetRotationSpeed( 4.0f );
+	Camera.SetRotationResistance( 20.0f );
 	Camera.SetRotationRollFactor( 0.1f );
 	Camera.UpdateMatrix( );
 
 	// Set the matrix to the matrix manager
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
 	Bit::MatrixManager::SetMatrix( Camera.GetMatrix( ) );
-
 }
 
 BIT_UINT32 CreateWindow( )
@@ -876,5 +925,39 @@ BIT_UINT32 CreateModelShader( )
 	pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
 	pShaderProgram_Model->Unbind( );
 	
+	return BIT_OK;
+}
+
+BIT_UINT32 CreateGUI( )
+{
+	// Allocate everything
+	GUI = new GUIManager( pGraphicDevice );
+	Checkbox1 = new GUICheckbox( Bit::Vector2_si32( 400, 400 ), Bit::Vector2_ui32( 32, 32 ), BIT_FALSE );
+	Checkbox2 = new GUICheckbox( Bit::Vector2_si32( 700, 600 ), Bit::Vector2_ui32( 16, 16 ), BIT_FALSE );
+
+	// Load the GUI manager
+	if( GUI->Load( ) )
+	{
+		bitTrace( "[Error] Can not load he GUI manager\n" );
+		return BIT_ERROR;
+	}
+
+	// Add the elements
+	GUI->Add( Checkbox1 );
+	GUI->Add( Checkbox2 );
+
+	/*
+		
+	GUIManager * GUI = BIT_NULL;
+	GUICheckbox * Checkbox1 = BIT_NULL;
+	GUICheckbox * Checkbox2 = BIT_NULL;
+	GUISlider * Slider1 = BIT_NULL;
+	GUISlider * Slider2 = BIT_NULL;
+
+
+	*/
+
+
+
 	return BIT_OK;
 }

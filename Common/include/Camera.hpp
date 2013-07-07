@@ -24,6 +24,7 @@
 
 #ifndef __CAMERA_HPP__
 
+#include <Bit/DataTypes.hpp>
 #include <Bit/System/MatrixManager.hpp>
 #include <Bit/System/Vector2.hpp>
 #include <Bit/System/Vector3.hpp>

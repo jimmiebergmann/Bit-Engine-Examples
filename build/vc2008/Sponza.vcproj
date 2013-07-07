@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Sponza/include;"
+				AdditionalIncludeDirectories="../../Sponza/include;../../Common/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;BIT_STATIC_LIB;$(NOINHERIT)"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -320,14 +320,46 @@
 	<References>
 	</References>
 	<Files>
-		<File
-			RelativePath="..\..\Sponza\source\Camera.cpp"
+		<Filter
+			Name="Common"
 			>
-		</File>
-		<File
-			RelativePath="..\..\Sponza\include\Camera.hpp"
-			>
-		</File>
+			<File
+				RelativePath="..\..\Common\source\Camera.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\include\Camera.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\include\GUI.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\source\GUICheckbox.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\include\GUICheckbox.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\source\GUIManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\include\GUIManager.hpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\source\GUISlider.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\Common\include\GUISlider.hpp"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\..\Sponza\source\Main.cpp"
 			>
