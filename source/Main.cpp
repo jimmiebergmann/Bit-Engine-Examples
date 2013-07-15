@@ -52,7 +52,7 @@ int main( int argc, char ** argv )
 	{
 		bitTrace( "Intersection: NONE\n\n\n" );
 	}
-	
+
 
 
 
@@ -67,7 +67,7 @@ int main( int argc, char ** argv )
 		CreateGraphicDevice( ) != BIT_OK ||
 		CreateModel( ) != BIT_OK ||
 		CreateImage( ) != BIT_OK ||
-		CreateTexture( ) != BIT_OK || 
+		CreateTexture( ) != BIT_OK ||
 		CreateVertexObject( ) != BIT_OK ||
 		CreateShaders( argv[ 0 ] ) != BIT_OK ||
 		CreateShaderProgram( ) != BIT_OK )
@@ -81,7 +81,7 @@ int main( int argc, char ** argv )
 	Timer.Start( );
 
 	// Run the main loop
-	while( Timer.GetLapsedTime( ) < 10.0f && pWindow->IsOpen( ) )
+	while( /*Timer.GetLapsedTime( ) < 10.0f &&*/ pWindow->IsOpen( ) )
 	{
 		// Do evenets
 		pWindow->Update( );
@@ -536,7 +536,7 @@ BIT_UINT32 CreateShaderProgram( )
 		pShaderProgram->SetAttributeLocation( "Normal", AttributeIndex );
 		AttributeIndex++;
 	}
-	
+
 
 	// Link the shaders
 	if( pShaderProgram->Link( ) != BIT_OK )
@@ -549,7 +549,7 @@ BIT_UINT32 CreateShaderProgram( )
 	Bit::Matrix4x4 ProjectionMatrix;
 	Bit::Matrix4x4 ViewMatrix;
 	ProjectionMatrix.Perspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y,
-		0.001f, 100.0f ); 
+		0.001f, 100.0f );
 	ViewMatrix.Identity( );
 	ViewMatrix.Translate( 0.0f, 0.0f, -3.2f );
 
