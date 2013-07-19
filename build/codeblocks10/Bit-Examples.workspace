@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="Bit-Examples Workspace">
-		<Project filename="ShadowMapping.cbp" active="1" />
-		<Project filename="Sponza.cbp" />
+		<Project filename="ShadowMapping.cbp" />
+		<Project filename="Sponza.cbp" active="1" />
 	</Workspace>
 </CodeBlocks_workspace_file>

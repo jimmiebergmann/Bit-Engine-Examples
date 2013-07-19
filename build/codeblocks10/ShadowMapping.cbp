@@ -8,7 +8,7 @@
 		<Build>
 			<Target title="Static Debug Linux">
 				<Option output="../../bin/Linux/32/ShadowMapping-d" prefix_auto="0" extension_auto="1" />
-				<Option object_output="../../obj/Linux/32/codeblocks10/bit-system/Debug" />
+				<Option object_output="../../obj/Linux/32/codeblocks10/ShadowMapping/Debug" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -26,10 +26,11 @@
 					<Add directory="../../ShadowMapping/include" />
 				</ResourceCompiler>
 				<Linker>
-					<Add library="../../../Bit-Engine/lib/Linux/32/Static/bit-graphics-d" />
-					<Add library="../../../Bit-Engine/lib/Windows/32/Static/bit-system-d" />
-					<Add library="../../../Bit-Engine/lib/Windows/32/Static/bit-window-d" />
-					<Add library="opengl32" />
+					<Add library="../../../Bit-Engine/lib/Linux/32/bit-system-d.a" />
+					<Add library="../../../Bit-Engine/lib/Linux/32/bit-window-d.a" />
+					<Add library="../../../Bit-Engine/lib/Linux/32/bit-graphics-d.a" />
+					<Add library="X11" />
+					<Add library="GL" />
 				</Linker>
 			</Target>
 			<Target title="Static Release Linux">
