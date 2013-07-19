@@ -23,6 +23,7 @@
 // ///////////////////////////////////////////////////////////////////////////
 
 #ifndef __CAMERA_HPP__
+#define __CAMERA_HPP__
 
 #include <Bit/DataTypes.hpp>
 #include <Bit/System/MatrixManager.hpp>

@@ -198,14 +198,14 @@ int main( int argc, char ** argv )
 						{
 							// Flip the flag
 							UseNormalMapping = !UseNormalMapping;
-							
+
 							// Bind and update the uniform
 							pShaderProgram_Model->Bind( );
 							pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
 							pShaderProgram_Model->Unbind( );
 						}
 						break;
-						
+
 						// Exit keys
 						case 27:
 						{
@@ -247,7 +247,7 @@ int main( int argc, char ** argv )
 					{
 						// Set the mouse position
 						MousePosition = Event.MousePosition;
-						
+
 						// Set the previous mouse position as well if we just pressed the mouse button
 						if( !HoldingDownMouse )
 						{
@@ -280,7 +280,7 @@ int main( int argc, char ** argv )
 			// Calculate the mouse difference from the last update
 			Bit::Vector2_si32 MouseDiff = MousePosition - PreviousMousePosition;
 			PreviousMousePosition = MousePosition;
-			
+
 			// Rotate the camera
 			Camera.Rotate( MouseDiff );
 		}
@@ -386,7 +386,7 @@ int CloseApplication( const int p_Code )
 		delete GUI;
 		GUI = BIT_NULL;
 	}
-	
+
 
 	if( pLevelModel )
 	{
@@ -411,7 +411,7 @@ int CloseApplication( const int p_Code )
 		delete pFragmentShader_Model;
 		pFragmentShader_Model = BIT_NULL;
 	}
-	
+
 	if( pPostProcessingBloom )
 	{
 		delete pPostProcessingBloom;
@@ -462,7 +462,7 @@ void InitializeMatrixManager( )
 {
 	// Projection
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Projection );
-	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 2.0f, 4000.0f ); 
+	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 2.0f, 4000.0f );
 
 	// Model view
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
@@ -601,13 +601,13 @@ BIT_UINT32 CreateFullscreenRendering( )
 		Bit::Texture::Filter_None, Bit::Texture::Filter_None
 	};
 
-	if( pColorTexture->SetFilters( TextureFilters ) != BIT_OK )	
+	if( pColorTexture->SetFilters( TextureFilters ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not set the fullscreen color texture filers\n" );
 		return BIT_ERROR;
 	}
 
-	if( pDepthTexture->SetFilters( TextureFilters ) != BIT_OK )	
+	if( pDepthTexture->SetFilters( TextureFilters ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not set the fullscreen depth texture filers\n" );
 		return BIT_ERROR;
@@ -642,20 +642,24 @@ BIT_UINT32 CreateFullscreenRendering( )
 	}
 
 	// Load the fullscreen vertex object
-	
+
 	BIT_FLOAT32 VertexPositions[ 18 ] =
 	{
-		0.0f, 0.0f, 0.0f,	WindowSize.x, 0.0f, 0.0f,		WindowSize.x, WindowSize.y, 0.0f,
-		0.0f, 0.0f, 0.0f,	WindowSize.x, WindowSize.y, 0.0f,	0.0f, WindowSize.y, 0.0f
+		0.0f, 0.0f, 0.0f,
+		static_cast<BIT_FLOAT32>(WindowSize.x), 0.0f, 0.0f,
+		static_cast<BIT_FLOAT32>(WindowSize.x), static_cast<BIT_FLOAT32>(WindowSize.y), 0.0f,
+		0.0f, 0.0f, 0.0f,
+		static_cast<BIT_FLOAT32>(WindowSize.x), static_cast<BIT_FLOAT32>(WindowSize.y), 0.0f,
+		0.0f, static_cast<BIT_FLOAT32>(WindowSize.y), 0.0f
 	};
 
 	BIT_FLOAT32 VertexTextures[ 12 ] =
 	{
-		0.0f, 0.0f,		1.0f, 0.0f,		1.0f, 1.0f,	
+		0.0f, 0.0f,		1.0f, 0.0f,		1.0f, 1.0f,
 		0.0f, 0.0f,		1.0f, 1.0f,		0.0f, 1.0f
 	};
 
-	// SLOW WAY 
+	// SLOW WAY
 
 
 	if( pFullscreenVertexObject->AddVertexBuffer( VertexPositions, 3, BIT_TYPE_FLOAT32 ) != BIT_OK )
@@ -924,7 +928,7 @@ BIT_UINT32 CreateModelShader( )
 	pShaderProgram_Model->SetUniform3f( "LightPosition", 1.0f, 100.0f, 0.0f );
 	pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
 	pShaderProgram_Model->Unbind( );
-	
+
 	return BIT_OK;
 }
 
@@ -947,7 +951,7 @@ BIT_UINT32 CreateGUI( )
 	GUI->Add( Checkbox2 );
 
 	/*
-		
+
 	GUIManager * GUI = BIT_NULL;
 	GUICheckbox * Checkbox1 = BIT_NULL;
 	GUICheckbox * Checkbox2 = BIT_NULL;

@@ -23,6 +23,7 @@
 // ///////////////////////////////////////////////////////////////////////////
 
 #ifndef __CAMERA_HPP__
+#define __CAMERA_HPP__
 
 #include <Bit/System/MatrixManager.hpp>
 #include <Bit/System/Vector2.hpp>
@@ -55,7 +56,7 @@ public:
 	void SetEyeSpeed( const BIT_FLOAT32 p_Speed );
 
 	// Get functions
-	Bit::Matrix4x4 GetMatrix( ) const;
+	const Bit::Matrix4x4 & GetMatrix( ) const;
 	Bit::Vector3_f32 GetPosition( ) const;
 	Bit::Vector3_f32 GetDirection( ) const;
 	Bit::Vector2_f32 GetAngles( ) const;

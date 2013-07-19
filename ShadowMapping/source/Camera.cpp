@@ -127,7 +127,7 @@ BIT_BOOL Camera::Update( const BIT_FLOAT64 p_DeltaTime )
 		CalculateDirectionFlank( );
 
 		m_NewEyeDirection.x = 0.0f;
-		m_NewEyeDirection.y = 0.0f;	
+		m_NewEyeDirection.y = 0.0f;
 
 		m_Direction = Bit::Vector3_f32( 0.0f, 0.0f, 1.0f );
 		m_Direction.RotateX( -m_CameraAngles.x );
@@ -161,7 +161,7 @@ void Camera::UpdateMatrix( )
 	m_Matrix.RotateX( m_CameraAngles.x );
 	m_Matrix.RotateY( m_CameraAngles.y );
 	m_Matrix.Translate( m_Position.x, m_Position.y, m_Position.z );*/
-	
+
 }
 
 
@@ -210,7 +210,7 @@ void Camera::SetEyeSpeed( const BIT_FLOAT32 p_Speed )
 }
 
 // Get functions
-Bit::Matrix4x4 Camera::GetMatrix( ) const
+const Bit::Matrix4x4 & Camera::GetMatrix( ) const
 {
 	return m_Matrix;
 }

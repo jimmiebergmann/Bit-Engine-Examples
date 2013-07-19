@@ -202,14 +202,14 @@ int main( int argc, char ** argv )
 						{
 							// Flip the flag
 							UseNormalMapping = !UseNormalMapping;
-							
+
 							/*// Bind and update the uniform
 							pShaderProgram_Model->Bind( );
 							pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
 							pShaderProgram_Model->Unbind( );*/
 						}
 						break;
-						
+
 						// Exit keys
 						case 27:
 						{
@@ -516,10 +516,10 @@ BIT_UINT32 CreateGraphicDevice( )
 BIT_UINT32 LoadMatrices( )
 {
 	// Initialize the matrix manager data
-	
+
 	// Projection
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Projection );
-	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 2.0f, 50.0f ); 
+	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 2.0f, 50.0f );
 
 	// View matrix
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
@@ -699,7 +699,7 @@ BIT_UINT32 LoadLevelData( )
 		"	out_Position = Position.xyz; \n"
 		"	out_Normal = normalize( Normal ); \n"
 
-		// Set position and shadow light position 
+		// Set position and shadow light position
 		"	LightVertexPosition = BiasMatrix * ProjectionMatrix * ShadowViewMatrix * vec4( Position, 1.0 ); \n"
 		"	gl_Position = ProjectionMatrix * ViewMatrix * vec4( Position, 1.0 ); \n"
 
@@ -718,7 +718,7 @@ BIT_UINT32 LoadLevelData( )
 		// Shadow data
 		"uniform sampler2D ShadowTexture; \n"
 		"in vec4 LightVertexPosition; \n"
-		
+
 
 		"void main(void) \n"
 		"{ \n"
@@ -805,7 +805,7 @@ BIT_UINT32 LoadLevelData( )
 	// Set attribute locations
 	pLevelShaderProgram->SetAttributeLocation( "Position", 0 );
 	pLevelShaderProgram->SetAttributeLocation( "Normal", 1 );
-	
+
 
 	// Link the shaders
 	if( pLevelShaderProgram->Link( ) != BIT_OK )
@@ -845,17 +845,22 @@ BIT_UINT32 LoadFullscreenData( )
 
 	BIT_FLOAT32 VertexPositions[ 18 ] =
 	{
-		0.0f, 0.0f, 0.0f,	WindowSize.x, 0.0f, 0.0f,		WindowSize.x, WindowSize.y, 0.0f,
-		0.0f, 0.0f, 0.0f,	WindowSize.x, WindowSize.y, 0.0f,	0.0f, WindowSize.y, 0.0f
+		0.0f, 0.0f, 0.0f,
+		static_cast<const BIT_FLOAT32>(WindowSize.x), 0.0f, 0.0f,
+		static_cast<const BIT_FLOAT32>(WindowSize.x), static_cast<const BIT_FLOAT32>(WindowSize.y), 0.0f,
+
+		0.0f, 0.0f, 0.0f,
+		static_cast<const BIT_FLOAT32>(WindowSize.x), static_cast<const BIT_FLOAT32>(WindowSize.y), 0.0f,
+		0.0f, static_cast<const BIT_FLOAT32>(WindowSize.y), 0.0f
 	};
 
 	BIT_FLOAT32 VertexTextures[ 12 ] =
 	{
-		0.0f, 0.0f,		1.0f, 0.0f,		1.0f, 1.0f,	
+		0.0f, 0.0f,		1.0f, 0.0f,		1.0f, 1.0f,
 		0.0f, 0.0f,		1.0f, 1.0f,		0.0f, 1.0f
 	};
 
-	// SLOW WAY 
+	// SLOW WAY
 
 
 	if( pFullscreenVertexObject->AddVertexBuffer( VertexPositions, 3, BIT_TYPE_FLOAT32 ) != BIT_OK )
@@ -978,7 +983,7 @@ BIT_UINT32 LoadFullscreenData( )
 	// Set attribute locations
 	pFullscreenShaderProgram->SetAttributeLocation( "Position", 0 );
 	pFullscreenShaderProgram->SetAttributeLocation( "Texture", 1 );
-	
+
 
 	// Link the shaders
 	if( pFullscreenShaderProgram->Link( ) != BIT_OK )
@@ -1032,7 +1037,7 @@ BIT_UINT32 LoadShadowData( )
 	}
 
 
-	
+
 	// Shadow framebuffer
 
 	// Create the shadow framebuffer
@@ -1131,7 +1136,7 @@ BIT_UINT32 LoadShadowData( )
 
 	// Set attribute locations
 	pShadowShaderProgram->SetAttributeLocation( "Position", 0 );
-	
+
 	// Link the shaders
 	if( pShadowShaderProgram->Link( ) != BIT_OK )
 	{
@@ -1146,7 +1151,7 @@ BIT_UINT32 LoadShadowData( )
 	pShadowShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ShadowViewMatrix );
 	pShadowShaderProgram->Unbind( );
 
-	
+
 
 	return BIT_OK;
 }
@@ -1169,6 +1174,6 @@ BIT_UINT32 InitializeShadowMap( )
 	pShadowFramebuffer->Unbind( );
 
 	pGraphicDevice->DisableFaceCulling( );
-	
+
 	return BIT_OK;
 }

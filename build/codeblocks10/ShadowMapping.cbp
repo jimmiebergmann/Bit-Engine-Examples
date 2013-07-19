@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="ShadowMapping" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Static Debug Linux">
+				<Option output="../../bin/Linux/32/ShadowMapping-d" prefix_auto="0" extension_auto="1" />
+				<Option object_output="../../obj/Linux/32/codeblocks10/bit-system/Debug" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-W" />
+					<Add option="-O0" />
+					<Add option="-std=gnu++0x" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_CONSOLE" />
+					<Add option="-DBIT_STATIC_LIB" />
+					<Add directory="../../ShadowMapping/include" />
+					<Add directory="../../../Bit-Engine/include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../../ShadowMapping/include" />
+				</ResourceCompiler>
+				<Linker>
+					<Add library="../../../Bit-Engine/lib/Linux/32/Static/bit-graphics-d" />
+					<Add library="../../../Bit-Engine/lib/Windows/32/Static/bit-system-d" />
+					<Add library="../../../Bit-Engine/lib/Windows/32/Static/bit-window-d" />
+					<Add library="opengl32" />
+				</Linker>
+			</Target>
+			<Target title="Static Release Linux">
+				<Option output="../../bin/Linux/32/ShadowMapping" prefix_auto="0" extension_auto="1" />
+				<Option object_output="../../obj/Linux/32/codeblocks10/bit-system/Debug" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-W" />
+					<Add option="-std=gnu++0x" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_CONSOLE" />
+					<Add option="-DBIT_STATIC_LIB" />
+					<Add directory="../../ShadowMapping/include" />
+					<Add directory="../../../Bit-Engine/include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../../ShadowMapping/include" />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="../../../Bit-Engine/lib/Windows/32/Static/bit-graphics" />
+					<Add library="../../../Bit-Engine/lib/Windows/32/Static/bit-system" />
+					<Add library="../../../Bit-Engine/lib/Windows/32/Static/bit-window" />
+					<Add library="opengl32" />
+				</Linker>
+			</Target>
+			<Target title="Dynamic Debug Linux">
+				<Option output="$(SolutionDir)/../../bin/Windows/32/ShadowMapping-d" prefix_auto="1" extension_auto="1" />
+				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/ShadowMapping/Dynamic_Debug" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_CONSOLE" />
+					<Add option="-D$(NOINHERIT)" />
+					<Add option="-W" />
+					<Add option="-g" />
+					<Add option="-O0" />
+					<Add directory="../../ShadowMapping/include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../../ShadowMapping/include" />
+				</ResourceCompiler>
+				<Linker>
+					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-graphics-d" />
+					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-system-d" />
+					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-window-d" />
+				</Linker>
+			</Target>
+			<Target title="Dynamic Release Linux">
+				<Option output="ShadowMapping" prefix_auto="1" extension_auto="1" />
+				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/ShadowMapping/Dynamic_Release" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_CONSOLE" />
+					<Add option="-W" />
+					<Add option="-O2" />
+					<Add directory="../../ShadowMapping/include" />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="../../ShadowMapping/include" />
+				</ResourceCompiler>
+				<Linker>
+					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-graphics" />
+					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-system" />
+					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-window" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="../../ShadowMapping/include/Camera.hpp" />
+		<Unit filename="../../ShadowMapping/source/Camera.cpp" />
+		<Unit filename="../../ShadowMapping/source/Main.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
