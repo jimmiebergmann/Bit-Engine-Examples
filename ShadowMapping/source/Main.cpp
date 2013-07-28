@@ -151,54 +151,54 @@ int main( int argc, char ** argv )
 					switch( Event.Key )
 					{
 						// Movement keys
-						case 'W':
+						case Bit::Keyboard::Key_W:
 						{
 							Camera.MoveForwards( );
 						}
 						break;
-						case 'S':
+						case Bit::Keyboard::Key_S:
 						{
 							Camera.MoveBackwards( );
 						}
 						break;
-						case 'A':
+						case Bit::Keyboard::Key_A:
 						{
 							Camera.MoveLeft( );
 						}
 						break;
-						case 'D':
+						case Bit::Keyboard::Key_D:
 						{
 							Camera.MoveRight( );
 						}
 						break;
 						// Culling
-						case 'Z':
+						case Bit::Keyboard::Key_Z:
 						{
 							pGraphicDevice->EnableFaceCulling( Bit::GraphicDevice::Culling_BackFace );
 						}
 						break;
-						case 'X':
+						case Bit::Keyboard::Key_X:
 						{
 							pGraphicDevice->EnableFaceCulling( Bit::GraphicDevice::Culling_FrontFace );
 						}
 						break;
-						case 'C':
+						case Bit::Keyboard::Key_C:
 						{
 							pGraphicDevice->DisableFaceCulling( );
 						}
 						break;
 						// Mouse visibility
-						case 'V':
+						case Bit::Keyboard::Key_V:
 						{
 							pWindow->ShowCursor( BIT_TRUE );
 						}
 						break;
-						case 'B':
+						case Bit::Keyboard::Key_B:
 						{
 							pWindow->ShowCursor( BIT_FALSE );
 						}
 						break;
-						case 'M':
+						case Bit::Keyboard::Key_M:
 						{
 							// Flip the flag
 							UseNormalMapping = !UseNormalMapping;
@@ -211,12 +211,7 @@ int main( int argc, char ** argv )
 						break;
 
 						// Exit keys
-						case 27:
-						{
-							return CloseApplication( 0 );
-						}
-						break;
-						case 65307:
+						case Bit::Keyboard::Key_Escape:
 						{
 							return CloseApplication( 0 );
 						}

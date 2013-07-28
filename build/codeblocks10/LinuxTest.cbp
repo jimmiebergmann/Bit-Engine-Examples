@@ -2,13 +2,13 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="Sponza" />
+		<Option title="LinuxTest" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Static Debug Win32">
-				<Option output="../../bin/Linux/32/Sponza-d" prefix_auto="1" extension_auto="1" />
-				<Option object_output="../../obj/Linux/32/codeblocks10/Sponza/Debug" />
+			<Target title="Static Debug Linux">
+				<Option output="../../bin/Linux/32/LinuxTest-d" prefix_auto="0" extension_auto="1" />
+				<Option object_output="../../obj/Linux/32/codeblocks10/LinuxTest/Debug" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -19,43 +19,35 @@
 					<Add option="-D_DEBUG" />
 					<Add option="-D_CONSOLE" />
 					<Add option="-DBIT_STATIC_LIB" />
-					<Add directory="../../Sponza/include" />
-					<Add directory="../../Common/include" />
+					<Add directory="../../LinuxTest/include" />
 					<Add directory="../../../Bit-Engine/include" />
 				</Compiler>
-				<ResourceCompiler>
-					<Add directory="../../Sponza/include" />
-					<Add directory="../../Common/include" />
-				</ResourceCompiler>
 				<Linker>
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-system-d.a" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-window-d.a" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-graphics-d.a" />
 					<Add library="X11" />
 					<Add library="GL" />
+					<Add library="rt" />
 				</Linker>
 			</Target>
-			<Target title="Static Release Win32">
-				<Option output="../../bin/Linux/32/Sponza" prefix_auto="1" extension_auto="1" />
-				<Option object_output="../../obj/Linux/32/codeblocks10/Sponza/Release" />
+			<Target title="Static Release Linux">
+				<Option output="../../bin/Linux/32/LinuxTest" prefix_auto="0" extension_auto="1" />
+				<Option object_output="../../obj/Linux/32/codeblocks10/bit-system/Debug" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-W" />
 					<Add option="-std=gnu++0x" />
-					<Add option="-DWIN32" />
 					<Add option="-DNDEBUG" />
 					<Add option="-D_CONSOLE" />
 					<Add option="-DBIT_STATIC_LIB" />
-					<Add directory="../../Sponza/include" />
-					<Add directory="../../Common/include" />
+					<Add directory="../../LinuxTest/include" />
 					<Add directory="../../../Bit-Engine/include" />
 				</Compiler>
-				<ResourceCompiler>
-					<Add directory="../../Sponza/include" />
-				</ResourceCompiler>
 				<Linker>
+					<Add option="-s" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-system.a" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-window.a" />
 					<Add library="../../../Bit-Engine/lib/Linux/32/bit-graphics.a" />
@@ -63,9 +55,9 @@
 					<Add library="GL" />
 				</Linker>
 			</Target>
-			<Target title="Dynamic Debug Win32">
-				<Option output="$(SolutionDir)/../../bin/Windows/32/Sponza-d" prefix_auto="1" extension_auto="1" />
-				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/Sponza/Dynamic_Debug" />
+			<Target title="Dynamic Debug Linux">
+				<Option output="$(SolutionDir)/../../bin/Windows/32/LinuxTest-d" prefix_auto="1" extension_auto="1" />
+				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/LinuxTest/Dynamic_Debug" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -76,10 +68,10 @@
 					<Add option="-W" />
 					<Add option="-g" />
 					<Add option="-O0" />
-					<Add directory="../../Sponza/include" />
+					<Add directory="../../LinuxTest/include" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="../../Sponza/include" />
+					<Add directory="../../LinuxTest/include" />
 				</ResourceCompiler>
 				<Linker>
 					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-graphics-d" />
@@ -87,9 +79,9 @@
 					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-window-d" />
 				</Linker>
 			</Target>
-			<Target title="Dynamic Release Win32">
-				<Option output="Sponza" prefix_auto="1" extension_auto="1" />
-				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/Sponza/Dynamic_Release" />
+			<Target title="Dynamic Release Linux">
+				<Option output="LinuxTest" prefix_auto="1" extension_auto="1" />
+				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/LinuxTest/Dynamic_Release" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -98,10 +90,10 @@
 					<Add option="-D_CONSOLE" />
 					<Add option="-W" />
 					<Add option="-O2" />
-					<Add directory="../../Sponza/include" />
+					<Add directory="../../LinuxTest/include" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="../../Sponza/include" />
+					<Add directory="../../LinuxTest/include" />
 				</ResourceCompiler>
 				<Linker>
 					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-graphics" />
@@ -110,16 +102,7 @@
 				</Linker>
 			</Target>
 		</Build>
-		<Unit filename="../../Common/include/Camera.hpp" />
-		<Unit filename="../../Common/include/GUI.hpp" />
-		<Unit filename="../../Common/include/GUICheckbox.hpp" />
-		<Unit filename="../../Common/include/GUIManager.hpp" />
-		<Unit filename="../../Common/include/GUISlider.hpp" />
-		<Unit filename="../../Common/source/Camera.cpp" />
-		<Unit filename="../../Common/source/GUICheckbox.cpp" />
-		<Unit filename="../../Common/source/GUIManager.cpp" />
-		<Unit filename="../../Common/source/GUISlider.cpp" />
-		<Unit filename="../../Sponza/source/Main.cpp" />
+		<Unit filename="../../LinuxTest/source/Main.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />
