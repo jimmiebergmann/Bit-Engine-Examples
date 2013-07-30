@@ -22,12 +22,5 @@ Ignore
 *.depend
 
 # Extra #
-*.tga
-*.jpg
-*.png
-*.bmp
-*.wav
-*.ogg
-*.mp3
 *.zip
 *.rar
