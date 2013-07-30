@@ -1,6 +1,7 @@
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
 #include <Bit/System/Keyboard.hpp>
+#include <Bit/System/Mouse.hpp>
 #include <Bit/Graphics/Image.hpp>
 #include <Bit/System/Timer.hpp>
 #include <Bit/System.hpp>
@@ -14,6 +15,7 @@
 Bit::Window * pWindow = BIT_NULL;
 Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
 Bit::Keyboard * pKeyboard = BIT_NULL;
+Bit::Mouse * pMouse = BIT_NULL;
 
 // Render data
 Bit::VertexObject * pVertexObject = BIT_NULL;
@@ -83,40 +85,87 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::KeyPressed:
 				{
+				    bitTrace( "Keyboard pressed:  %i \n", Event.Key );
+				}
+				break;
+				case Bit::Event::KeyJustPressed:
+				{
+				    bitTrace( "Keyboard just pressed:  %i \n", Event.Key );
+
 					switch( Event.Key )
 					{
 					    case Bit::Keyboard::Key_Escape:
 					    {
 					        return CloseApplication( 0 );
 					    }
-					    break;
-					    default:
-					    {
-					         bitTrace( "Pressed 1:  %i \n", Event.Key );
-					    }
-					    break;
+					    default: break;
 					}
 
 				}
 				break;
-
+				case Bit::Event::KeyJustReleased:
+				{
+				    bitTrace( "Keyboard just released:  %i \n", Event.Key );
+				}
+				break;
+				case Bit::Event::ButtonPressed:
+				{
+				    bitTrace( "Mouse pressed:  %i \n", Event.Button );
+				}
+				break;
+				case Bit::Event::ButtonJustPressed:
+				{
+				    bitTrace( "Mouse just pressed:  %i \n", Event.Button );
+				}
+				break;
+				case Bit::Event::ButtonJustReleased:
+				{
+				    bitTrace( "Mouse just released:  %i \n", Event.Button );
+				}
+				break;
 				default:
 					break;
 			}
 		}
 
 		// Update the keyboard
-		pKeyboard->Update( );
+		//pKeyboard->Update( );
+		//pMouse->Update( );
 
-
-		for( BIT_MEMSIZE i = 1; i < Bit::Keyboard::Key_Count; i++ )
+		// Button test
+		/*if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_1 ) )
 		{
-		    if( pKeyboard->KeyIsJustPressed( (Bit::Keyboard::eKey)i ) )
+            bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_1 );
+		}
+		if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_2 ) )
+		{
+            bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_2 );
+		}
+		if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_3 ) )
+		{
+            bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_3 );
+		}
+*/
+
+        // Key test
+		/*for( BIT_MEMSIZE i = 0; i < Bit::Keyboard::Key_Count; i++ )
+		{
+		    if( pKeyboard->KeyIsDown( (Bit::Keyboard::eKey)i ) )
 		    {
-		        bitTrace( "Pressed 2:  %i \n", i );
+		        bitTrace( "Keyboard 2:  %i \n", i );
 		    }
 
 		}
+
+		// Button test
+		for( BIT_MEMSIZE i = 0; i < Bit::Mouse::Button_Count; i++ )
+		{
+		    if( pMouse->ButtonIsDown( (Bit::Mouse::eButton)i ) )
+		    {
+		        bitTrace( "Mouse 2:  %i \n", i );
+		    }
+
+		}*/
 
 /*
         // SYSTEM KEY TESTS
@@ -473,6 +522,13 @@ BIT_UINT32 CreateWindow( )
     if( ( pKeyboard = Bit::CreateKeyboard( ) ) == BIT_NULL )
     {
         bitTrace( "[Error] Can not create the keyboard\n" );
+		return BIT_ERROR;
+    }
+
+    // Create a mouse
+    if( ( pMouse = Bit::CreateMouse( ) ) == BIT_NULL )
+    {
+        bitTrace( "[Error] Can not create the mouse\n" );
 		return BIT_ERROR;
     }
 
