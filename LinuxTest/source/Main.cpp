@@ -85,12 +85,19 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::KeyPressed:
 				{
-				    bitTrace( "Keyboard pressed:  %i \n", Event.Key );
+				    if( Event.Key == Bit::Keyboard::Key_None )
+				    {
+				        bitTrace( "Unknown Key pressed:  %i \n", Event.Key );
+				    }
+				    else
+				    {
+                        bitTrace( "Key pressed:  %i \n", Event.Key );
+                    }
 				}
 				break;
 				case Bit::Event::KeyJustPressed:
 				{
-				    bitTrace( "Keyboard just pressed:  %i \n", Event.Key );
+				    bitTrace( "Key just pressed:  %i \n", Event.Key );
 
 					switch( Event.Key )
 					{
@@ -105,22 +112,22 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::KeyJustReleased:
 				{
-				    bitTrace( "Keyboard just released:  %i \n", Event.Key );
+				    bitTrace( "Key just released:  %i \n", Event.Key );
 				}
 				break;
 				case Bit::Event::ButtonPressed:
 				{
-				    bitTrace( "Mouse pressed:  %i \n", Event.Button );
+				    bitTrace( "Button pressed:  %i \n", Event.Button );
 				}
 				break;
 				case Bit::Event::ButtonJustPressed:
 				{
-				    bitTrace( "Mouse just pressed:  %i \n", Event.Button );
+				    bitTrace( "Button just pressed:  %i \n", Event.Button );
 				}
 				break;
 				case Bit::Event::ButtonJustReleased:
 				{
-				    bitTrace( "Mouse just released:  %i \n", Event.Button );
+				    bitTrace( "Button just released:  %i \n", Event.Button );
 				}
 				break;
 				default:
@@ -131,9 +138,9 @@ int main( int argc, char ** argv )
 		// Update the keyboard
 		//pKeyboard->Update( );
 		//pMouse->Update( );
-
+/*
 		// Button test
-		/*if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_1 ) )
+		if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_1 ) )
 		{
             bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_1 );
 		}
@@ -505,7 +512,7 @@ BIT_UINT32 CreateWindow( )
 	}
 
 	// Create the style we want for the window
-	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Minimize | Bit::Window::Style_Close;
+	BIT_UINT32 Style = Bit::Window::Style_TitleBar | Bit::Window::Style_Resize | Bit::Window::Style_Minimize | Bit::Window::Style_Close;
 
 	// Open the window
 	if( pWindow->Open( WindowSize, 32, "Hello World", Style ) != BIT_OK )
@@ -515,7 +522,7 @@ BIT_UINT32 CreateWindow( )
 	}
 
 	// Change the window's title
-	pWindow->SetTitle( "Linux Test. Testing swedish characters: והצ ִֵײ" );
+	pWindow->SetTitle( "Linux Test." );
 
 
     // Create a keyboard
