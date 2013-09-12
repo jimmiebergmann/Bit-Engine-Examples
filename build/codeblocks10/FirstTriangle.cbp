@@ -2,13 +2,13 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="LinuxTest" />
+		<Option title="FirstTriangle" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Static Debug Linux">
-				<Option output="../../bin/Linux/32/LinuxTest-d" prefix_auto="0" extension_auto="1" />
-				<Option object_output="../../obj/Linux/32/codeblocks10/LinuxTest/Debug" />
+				<Option output="../../bin/Linux/32/FirstTriangle-d" prefix_auto="0" extension_auto="1" />
+				<Option object_output="../../obj/Linux/32/codeblocks10/FirstTriangle/Debug" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -19,7 +19,7 @@
 					<Add option="-D_DEBUG" />
 					<Add option="-D_CONSOLE" />
 					<Add option="-DBIT_STATIC_LIB" />
-					<Add directory="../../LinuxTest/include" />
+					<Add directory="../../FirstTriangle/include" />
 					<Add directory="../../../Bit-Engine/include" />
 				</Compiler>
 				<Linker>
@@ -32,7 +32,7 @@
 				</Linker>
 			</Target>
 			<Target title="Static Release Linux">
-				<Option output="../../bin/Linux/32/LinuxTest" prefix_auto="0" extension_auto="1" />
+				<Option output="../../bin/Linux/32/FirstTriangle" prefix_auto="0" extension_auto="1" />
 				<Option object_output="../../obj/Linux/32/codeblocks10/bit-system/Debug" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -43,7 +43,7 @@
 					<Add option="-DNDEBUG" />
 					<Add option="-D_CONSOLE" />
 					<Add option="-DBIT_STATIC_LIB" />
-					<Add directory="../../LinuxTest/include" />
+					<Add directory="../../FirstTriangle/include" />
 					<Add directory="../../../Bit-Engine/include" />
 				</Compiler>
 				<Linker>
@@ -56,8 +56,8 @@
 				</Linker>
 			</Target>
 			<Target title="Dynamic Debug Linux">
-				<Option output="$(SolutionDir)/../../bin/Windows/32/LinuxTest-d" prefix_auto="1" extension_auto="1" />
-				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/LinuxTest/Dynamic_Debug" />
+				<Option output="$(SolutionDir)/../../bin/Windows/32/FirstTriangle-d" prefix_auto="1" extension_auto="1" />
+				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/FirstTriangle/Dynamic_Debug" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -68,10 +68,10 @@
 					<Add option="-W" />
 					<Add option="-g" />
 					<Add option="-O0" />
-					<Add directory="../../LinuxTest/include" />
+					<Add directory="../../FirstTriangle/include" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="../../LinuxTest/include" />
+					<Add directory="../../FirstTriangle/include" />
 				</ResourceCompiler>
 				<Linker>
 					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-graphics-d" />
@@ -80,8 +80,8 @@
 				</Linker>
 			</Target>
 			<Target title="Dynamic Release Linux">
-				<Option output="LinuxTest" prefix_auto="1" extension_auto="1" />
-				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/LinuxTest/Dynamic_Release" />
+				<Option output="FirstTriangle" prefix_auto="1" extension_auto="1" />
+				<Option object_output="$(SolutionDir)/../../obj/Windows/32/vc2008/FirstTriangle/Dynamic_Release" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -90,10 +90,10 @@
 					<Add option="-D_CONSOLE" />
 					<Add option="-W" />
 					<Add option="-O2" />
-					<Add directory="../../LinuxTest/include" />
+					<Add directory="../../FirstTriangle/include" />
 				</Compiler>
 				<ResourceCompiler>
-					<Add directory="../../LinuxTest/include" />
+					<Add directory="../../FirstTriangle/include" />
 				</ResourceCompiler>
 				<Linker>
 					<Add library="../../../Bit-Engine/lib/Windows/32/Dynamic/bit-graphics" />
@@ -102,7 +102,7 @@
 				</Linker>
 			</Target>
 		</Build>
-		<Unit filename="../../LinuxTest/source/Main.cpp" />
+		<Unit filename="../../FirstTriangle/source/Main.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />

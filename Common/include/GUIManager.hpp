@@ -23,6 +23,7 @@
 // ///////////////////////////////////////////////////////////////////////////
 
 #ifndef __GUI_MANAGER_HPP__
+#define __GUI_MANAGER_HPP__
 
 #include <Bit/DataTypes.hpp>
 #include <Bit/Window/Event.hpp>

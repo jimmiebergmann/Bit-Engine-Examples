@@ -1,11 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShadowMapping", "ShadowMapping.vcproj", "{3EC61254-243A-4482-933A-242C24AF2D4B}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShadowMapping", "ShadowMapping.vcxproj", "{3EC61254-243A-4482-933A-242C24AF2D4B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sponza", "Sponza.vcproj", "{E5CD5A48-29EF-4CA5-AD66-73E830EA1A42}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sponza", "Sponza.vcxproj", "{E5CD5A48-29EF-4CA5-AD66-73E830EA1A42}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FirstTriangle", "FirstTriangle.vcproj", "{EAF12D8F-515A-41D9-8B00-5011F93F3B90}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FirstTriangle", "FirstTriangle.vcxproj", "{EAF12D8F-515A-41D9-8B00-5011F93F3B90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

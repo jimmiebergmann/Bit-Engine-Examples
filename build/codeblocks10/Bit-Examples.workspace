@@ -3,5 +3,6 @@
 	<Workspace title="Bit-Examples Workspace">
 		<Project filename="ShadowMapping.cbp" />
 		<Project filename="Sponza.cbp" active="1" />
+		<Project filename="FirstTriangle.cbp" active="1" />
 	</Workspace>
 </CodeBlocks_workspace_file>

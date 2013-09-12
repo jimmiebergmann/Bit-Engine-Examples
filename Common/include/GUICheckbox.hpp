@@ -23,6 +23,7 @@
 // ///////////////////////////////////////////////////////////////////////////
 
 #ifndef __GUI_CHECKBOX_HPP__
+#define __GUI_CHECKBOX_HPP__
 
 #include <Bit/DataTypes.hpp>
 #include <Bit/System/Vector2.hpp>

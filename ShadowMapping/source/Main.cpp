@@ -220,7 +220,7 @@ int main( int argc, char ** argv )
 
 				}
 				break;
-				case Bit::Event::KeyReleased:
+				case Bit::Event::KeyJustReleased:
 				{
 					bitTrace( "[Event] Key Released: %i\n", Event.Key );
 				}
@@ -230,12 +230,12 @@ int main( int argc, char ** argv )
 					continue;
 				}
 				break;
-				case Bit::Event::MouseButtonPressed:
+				case Bit::Event::ButtonPressed:
 				{
 					continue;
 				}
 				break;
-				case Bit::Event::MouseButtonReleased:
+				case Bit::Event::ButtonJustReleased:
 				{
 					continue;
 				}

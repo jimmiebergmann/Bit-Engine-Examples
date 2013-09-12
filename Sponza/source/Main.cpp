@@ -25,7 +25,7 @@ Bit::Shader * pVertexShader_Model = BIT_NULL;
 Bit::Shader * pFragmentShader_Model = BIT_NULL;
 
 // Camera variables
-Camera Camera;
+Camera ViewCamera;
 Bit::Vector2_si32 MousePosition( 0, 0 );
 Bit::Vector2_si32 PreviousMousePosition( 0, 0 );
 BIT_BOOL HoldingDownMouse = BIT_FALSE;
@@ -151,22 +151,22 @@ int main( int argc, char ** argv )
 						// Movement keys
 						case Bit::Keyboard::Key_W:
 						{
-							Camera.MoveForwards( );
+							ViewCamera.MoveForwards( );
 						}
 						break;
 						case Bit::Keyboard::Key_S:
 						{
-							Camera.MoveBackwards( );
+							ViewCamera.MoveBackwards( );
 						}
 						break;
 						case Bit::Keyboard::Key_A:
 						{
-							Camera.MoveLeft( );
+							ViewCamera.MoveLeft( );
 						}
 						break;
 						case Bit::Keyboard::Key_D:
 						{
-							Camera.MoveRight( );
+							ViewCamera.MoveRight( );
 						}
 						break;
 
@@ -220,7 +220,7 @@ int main( int argc, char ** argv )
 
 				}
 				break;
-				case Bit::Event::KeyReleased:
+				case Bit::Event::KeyJustReleased:
 				{
 					bitTrace( "[Event] Key Released: %i\n", Event.Key );
 				}
@@ -237,7 +237,7 @@ int main( int argc, char ** argv )
 					}
 				}
 				break;
-				case Bit::Event::MouseButtonPressed:
+				case Bit::Event::ButtonPressed:
 				{
 					// Update the GUI
 					GUI->Update( Event );
@@ -257,7 +257,7 @@ int main( int argc, char ** argv )
 					}
 				}
 				break;
-				case Bit::Event::MouseButtonReleased:
+				case Bit::Event::ButtonJustReleased:
 				{
 					// Update the GUI
 					GUI->Update( Event );
@@ -281,7 +281,7 @@ int main( int argc, char ** argv )
 			PreviousMousePosition = MousePosition;
 
 			// Rotate the camera
-			Camera.Rotate( MouseDiff );
+			ViewCamera.Rotate( MouseDiff );
 		}
 
 
@@ -291,19 +291,19 @@ int main( int argc, char ** argv )
 		CameraDiffs.y = (BIT_FLOAT32)MousePosition.y - (BIT_FLOAT32)MouseLockPosition.y;
 		if( CameraDiffs.y > 0.0f )
 		{
-			Camera.RotateUp( abs( CameraDiffs.y ) );
+			ViewCamera.RotateUp( abs( CameraDiffs.y ) );
 		}
 		else if( CameraDiffs.y < 0.0f )
 		{
-			Camera.RotateDown( abs( CameraDiffs.y ) );
+			ViewCamera.RotateDown( abs( CameraDiffs.y ) );
 		}
 		if( CameraDiffs.x > 0.0f  )
 		{
-			Camera.RotateRight( abs( CameraDiffs.x ) );
+			ViewCamera.RotateRight( abs( CameraDiffs.x ) );
 		}
 		else if( CameraDiffs.x < 0.0f )
 		{
-			Camera.RotateLeft( abs( CameraDiffs.x ) );
+			ViewCamera.RotateLeft( abs( CameraDiffs.x ) );
 		}*/
 
 		// Bind the framebuffer
@@ -318,9 +318,9 @@ int main( int argc, char ** argv )
 		pShaderProgram_Model->Bind( );
 
 		// Update the camera if needed
-		if( Camera.Update( DeltaTime ) )
+		if( ViewCamera.Update( DeltaTime ) )
 		{
-			pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix", Camera.GetMatrix( ) );
+			pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix", ViewCamera.GetMatrix( ) );
 		}
 
 		// Render the model
@@ -474,17 +474,17 @@ void InitializeMatrixManager( )
 
 void InitializeCamera( )
 {
-	Camera.SetPosition( Bit::Vector3_f32( -900.0f, 600.0f, -200.0f ) );
-	Camera.SetDirection( Bit::Vector3_f32( 1.0f, -0.5f, 0.4f ).Normal( ) );
-	Camera.SetMovementSpeed( 1000.0f );
-	Camera.SetRotationSpeed( 4.0f );
-	Camera.SetRotationResistance( 20.0f );
-	Camera.SetRotationRollFactor( 0.1f );
-	Camera.UpdateMatrix( );
+	ViewCamera.SetPosition( Bit::Vector3_f32( -900.0f, 600.0f, -200.0f ) );
+	ViewCamera.SetDirection( Bit::Vector3_f32( 1.0f, -0.5f, 0.4f ).Normal( ) );
+	ViewCamera.SetMovementSpeed( 1000.0f );
+	ViewCamera.SetRotationSpeed( 4.0f );
+	ViewCamera.SetRotationResistance( 20.0f );
+	ViewCamera.SetRotationRollFactor( 0.1f );
+	ViewCamera.UpdateMatrix( );
 
 	// Set the matrix to the matrix manager
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
-	Bit::MatrixManager::SetMatrix( Camera.GetMatrix( ) );
+	Bit::MatrixManager::SetMatrix( ViewCamera.GetMatrix( ) );
 }
 
 BIT_UINT32 CreateWindow( )

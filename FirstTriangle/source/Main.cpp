@@ -100,7 +100,6 @@ int main( int argc, char ** argv )
 					    }
 					    default: break;
 					}
-
 				}
 				break;
 				case Bit::Event::KeyJustReleased:
@@ -129,36 +128,31 @@ int main( int argc, char ** argv )
 		}
 
 		// Update the keyboard
-		//pKeyboard->Update( );
-		//pMouse->Update( );
-
-		// Button test
-		/*if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_1 ) )
-		{
-            bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_1 );
-		}
-		if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_2 ) )
-		{
-            bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_2 );
-		}
-		if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_3 ) )
-		{
-            bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_3 );
-		}
-*/
+		pKeyboard->Update( );
+		pMouse->Update( );
 
         // Key test
+		/*if( pKeyboard->KeyIsDown( Bit::Keyboard::Key_A ) )
+	    {
+	        bitTrace( "Keyboard 2:  A \n" );
+	    }*/
+
 		/*for( BIT_MEMSIZE i = 0; i < Bit::Keyboard::Key_Count; i++ )
 		{
-		    if( pKeyboard->KeyIsDown( (Bit::Keyboard::eKey)i ) )
+		    if( pKeyboard->KeyIsJustReleased( (Bit::Keyboard::eKey)i ) )
 		    {
 		        bitTrace( "Keyboard 2:  %i \n", i );
 		    }
 
-		}
+		}*/
 
+		/*if( pKeyboard->KeyIsJustPressed( Bit::Keyboard::Key_Escape ) )
+	    {
+	       return CloseApplication( 0 );
+	    }
+*/
 		// Button test
-		for( BIT_MEMSIZE i = 0; i < Bit::Mouse::Button_Count; i++ )
+		/*for( BIT_MEMSIZE i = 0; i < Bit::Mouse::Button_Count; i++ )
 		{
 		    if( pMouse->ButtonIsDown( (Bit::Mouse::eButton)i ) )
 		    {
@@ -446,7 +440,7 @@ int main( int argc, char ** argv )
 int CloseApplication( const int p_Code )
 {
 	// Release the resource manager
-	//Bit::ResourceManager::Release( );
+	Bit::ResourceManager::Release( );
 
 
 	if( pShaderProgram )
@@ -467,12 +461,6 @@ int CloseApplication( const int p_Code )
 		pFragmentShader = BIT_NULL;
 	}
 
-	if( pTexture )
-	{
-		delete pTexture;
-		pTexture = BIT_NULL;
-	}
-
 	if( pVertexObject )
 	{
 		delete pVertexObject;
@@ -483,6 +471,18 @@ int CloseApplication( const int p_Code )
 	{
 		delete pGraphicDevice;
 		pGraphicDevice = BIT_NULL;
+	}
+
+	if( pKeyboard )
+	{
+		delete pKeyboard;
+		pKeyboard = BIT_NULL;
+	}
+
+	if( pMouse )
+	{
+		delete pMouse;
+		pMouse = BIT_NULL;
 	}
 
 	if( pWindow )

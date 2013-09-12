@@ -23,6 +23,7 @@
 // ///////////////////////////////////////////////////////////////////////////
 
 #ifndef __GUI_SLIDER_HPP__
+#define __GUI_SLIDER_HPP__
 
 #include <Bit/DataTypes.hpp>
 
