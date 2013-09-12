@@ -6,6 +6,7 @@
 #include <Bit/System/ResourceManager.hpp>
 #include <Bit/System/Debugger.hpp>
 #include <Bit/System/MemoryLeak.hpp>
+#include <Settings.hpp>
 #include <Camera.hpp>
 #include <GUIManager.hpp>
 
@@ -14,8 +15,8 @@ Bit::Window * pWindow = BIT_NULL;
 Bit::GraphicDevice * pGraphicDevice = BIT_NULL;
 
 // Setting varialbes
-const Bit::Vector2_ui32 WindowSize( 800, 600 );
-BIT_BOOL UseNormalMapping = BIT_TRUE;
+const std::string SettingsFilePath = "../../../Data/SponzaSettings.txt";
+Settings SponzaSettings;
 
 // Level variables
 const std::string LevelModelPath = "../../../../Sponza/sponza.obj";
@@ -49,6 +50,7 @@ Bit::PostProcessingBloom * pPostProcessingBloom = BIT_NULL;
 
 // Global functions
 int CloseApplication( const int p_Code );
+void LoadSettings( );
 void InitializeMatrixManager( );
 void InitializeCamera( );
 BIT_UINT32 CreateWindow( );
@@ -67,6 +69,9 @@ int main( int argc, char ** argv )
 
 	// Setting the absolute path in order to read files.
 	Bit::SetAbsolutePath( argv[ 0 ] );
+
+	// Load the settings
+	LoadSettings( );
 
 	// Initialize the matrix manager
 	InitializeMatrixManager( );
@@ -207,11 +212,11 @@ int main( int argc, char ** argv )
 						case Bit::Keyboard::Key_M:
 						{
 							// Flip the flag
-							UseNormalMapping = !UseNormalMapping;
+							SponzaSettings.SetUseNormalMapping( !SponzaSettings.GetUseNormalMapping( ) );
 
 							// Bind and update the uniform
 							pShaderProgram_Model->Bind( );
-							pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
+							pShaderProgram_Model->SetUniform1i( "UseNormalMapping", SponzaSettings.GetUseNormalMapping( ) );
 							pShaderProgram_Model->Unbind( );
 						}
 						break;
@@ -227,7 +232,7 @@ int main( int argc, char ** argv )
 				break;
 				case Bit::Event::KeyJustReleased:
 				{
-					bitTrace( "[Event] Key Released: %i\n", Event.Key );
+					// bitTrace( "[Event] Key Released: %i\n", Event.Key );
 				}
 				break;
 				case Bit::Event::MouseMoved:
@@ -290,27 +295,6 @@ int main( int argc, char ** argv )
 		}
 
 
-		// Update the camera angles
-	/*	Bit::Vector2_f32 CameraDiffs;
-		CameraDiffs.x = (BIT_FLOAT32)MousePosition.x - (BIT_FLOAT32)MouseLockPosition.x;
-		CameraDiffs.y = (BIT_FLOAT32)MousePosition.y - (BIT_FLOAT32)MouseLockPosition.y;
-		if( CameraDiffs.y > 0.0f )
-		{
-			ViewCamera.RotateUp( abs( CameraDiffs.y ) );
-		}
-		else if( CameraDiffs.y < 0.0f )
-		{
-			ViewCamera.RotateDown( abs( CameraDiffs.y ) );
-		}
-		if( CameraDiffs.x > 0.0f  )
-		{
-			ViewCamera.RotateRight( abs( CameraDiffs.x ) );
-		}
-		else if( CameraDiffs.x < 0.0f )
-		{
-			ViewCamera.RotateLeft( abs( CameraDiffs.x ) );
-		}*/
-
 		// Bind the framebuffer
 		pFramebuffer->Bind( );
 		pGraphicDevice->EnableDepthTest( );
@@ -345,8 +329,7 @@ int main( int argc, char ** argv )
 		pPostProcessingBloom->Process( );
 
 		// Render the GUI
-		//
-		GUI->Render( );
+		// GUI->Render( );
 
 		// Present the buffers
 		pGraphicDevice->Present( );
@@ -463,11 +446,24 @@ int CloseApplication( const int p_Code )
 	return p_Code;
 }
 
+void LoadSettings( )
+{
+	// Open the setting file
+	if( SponzaSettings.Open( Bit::GetAbsolutePath( SettingsFilePath ).c_str( ) ) != BIT_OK )
+	{
+		bitTrace( "[LoadSettings] Could not open the setting file, using default settings.\n" );
+
+		// Manually set some default settings
+		SponzaSettings.SetWindowSize( Bit::Vector2_ui32( 800, 600 ) );
+		SponzaSettings.SetUseNormalMapping( BIT_TRUE );
+	}
+}
+
 void InitializeMatrixManager( )
 {
 	// Projection
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Projection );
-	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 2.0f, 4000.0f );
+	Bit::MatrixManager::LoadPerspective( 45.0f, (BIT_FLOAT32)SponzaSettings.GetWindowSize( ).x / (BIT_FLOAT32)SponzaSettings.GetWindowSize( ).y, 2.0f, 4000.0f );
 
 	// Model view
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
@@ -506,20 +502,16 @@ BIT_UINT32 CreateWindow( )
 		/* Bit::Window::Style_Resize | */ Bit::Window::Style_Close;
 
 	// Open the window
-	if( pWindow->Open( WindowSize, 32, "Hello World", Style ) != BIT_OK )
+	if( pWindow->Open( SponzaSettings.GetWindowSize( ), 32, "Bit Engine - Sponza", Style ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not open the window\n" );
 		return BIT_ERROR;
 	}
 
-	// Calculate the mouse lock position
-	//Bit::Vector2_si32 WindowPosition = pWindow->GetPosition( );
-	//MouseLockPosition = WindowPosition + ( pWindow->GetSize( ) / 2 );
-
-	// Change the window's title
-	pWindow->SetTitle( "Sponza Scene" );
+	// Set the mouse state and position
 	//pWindow->ShowCursor( BIT_FALSE );
-	//pWindow->SetCursorPosition( MouseLockPosition );
+	Bit::Vector2_si32 MouseStartPosition = pWindow->GetPosition( ) + ( pWindow->GetSize( ) / 2 );
+	pWindow->SetCursorPosition( MouseStartPosition );
 
 	return BIT_OK;
 }
@@ -542,7 +534,7 @@ BIT_UINT32 CreateGraphicDevice( )
 
 	// Set the clear color
 	pGraphicDevice->SetClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	pGraphicDevice->SetViewport( 0, 0, WindowSize.x, WindowSize.y );
+	pGraphicDevice->SetViewport( 0, 0, SponzaSettings.GetWindowSize( ).x, SponzaSettings.GetWindowSize( ).y );
 	pGraphicDevice->EnableDepthTest( );
 	pGraphicDevice->EnableTexture( );
 	pGraphicDevice->EnableAlpha( );
@@ -584,13 +576,13 @@ BIT_UINT32 CreateFullscreenRendering( )
 	}
 
 	// Load the textures
-	if( pColorTexture->Load( WindowSize, BIT_RGB, BIT_RGB, BIT_TYPE_UCHAR8, BIT_NULL ) != BIT_OK )
+	if( pColorTexture->Load( SponzaSettings.GetWindowSize( ), BIT_RGB, BIT_RGB, BIT_TYPE_UCHAR8, BIT_NULL ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the fullscreen color texture\n" );
 		return BIT_ERROR;
 	}
 
-	if( pDepthTexture->Load( WindowSize, BIT_DEPTH, BIT_DEPTH, BIT_TYPE_FLOAT32, BIT_NULL ) != BIT_OK )
+	if( pDepthTexture->Load( SponzaSettings.GetWindowSize( ), BIT_DEPTH, BIT_DEPTH, BIT_TYPE_FLOAT32, BIT_NULL ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the fullscreen depth texture\n" );
 		return BIT_ERROR;
@@ -651,11 +643,11 @@ BIT_UINT32 CreateFullscreenRendering( )
 	BIT_FLOAT32 VertexPositions[ 18 ] =
 	{
 		0.0f, 0.0f, 0.0f,
-		static_cast<BIT_FLOAT32>(WindowSize.x), 0.0f, 0.0f,
-		static_cast<BIT_FLOAT32>(WindowSize.x), static_cast<BIT_FLOAT32>(WindowSize.y), 0.0f,
+		static_cast<BIT_FLOAT32>(SponzaSettings.GetWindowSize( ).x), 0.0f, 0.0f,
+		static_cast<BIT_FLOAT32>(SponzaSettings.GetWindowSize( ).x), static_cast<BIT_FLOAT32>(SponzaSettings.GetWindowSize( ).y), 0.0f,
 		0.0f, 0.0f, 0.0f,
-		static_cast<BIT_FLOAT32>(WindowSize.x), static_cast<BIT_FLOAT32>(WindowSize.y), 0.0f,
-		0.0f, static_cast<BIT_FLOAT32>(WindowSize.y), 0.0f
+		static_cast<BIT_FLOAT32>(SponzaSettings.GetWindowSize( ).x), static_cast<BIT_FLOAT32>(SponzaSettings.GetWindowSize( ).y), 0.0f,
+		0.0f, static_cast<BIT_FLOAT32>(SponzaSettings.GetWindowSize( ).y), 0.0f
 	};
 
 	BIT_FLOAT32 VertexTextures[ 12 ] =
@@ -931,7 +923,7 @@ BIT_UINT32 CreateModelShader( )
 	pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix",
 		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_View ) );
 	pShaderProgram_Model->SetUniform3f( "LightPosition", 1.0f, 100.0f, 0.0f );
-	pShaderProgram_Model->SetUniform1i( "UseNormalMapping", UseNormalMapping );
+	pShaderProgram_Model->SetUniform1i( "UseNormalMapping", SponzaSettings.GetUseNormalMapping( ) );
 	pShaderProgram_Model->Unbind( );
 
 	return BIT_OK;

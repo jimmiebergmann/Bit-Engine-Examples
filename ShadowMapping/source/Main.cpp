@@ -28,7 +28,7 @@ Bit::Shader * pLevelVertexShader = BIT_NULL;
 Bit::Shader * pLevelFragmentShader = BIT_NULL;
 
 // Camera variables
-Camera Camera;
+Camera ViewCamera;
 Bit::Vector2_si32 MousePosition( 0, 0 );
 Bit::Vector2_si32 MouseLockPosition( 500, 500 );
 
@@ -153,22 +153,22 @@ int main( int argc, char ** argv )
 						// Movement keys
 						case Bit::Keyboard::Key_W:
 						{
-							Camera.MoveForwards( );
+							ViewCamera.MoveForwards( );
 						}
 						break;
 						case Bit::Keyboard::Key_S:
 						{
-							Camera.MoveBackwards( );
+							ViewCamera.MoveBackwards( );
 						}
 						break;
 						case Bit::Keyboard::Key_A:
 						{
-							Camera.MoveLeft( );
+							ViewCamera.MoveLeft( );
 						}
 						break;
 						case Bit::Keyboard::Key_D:
 						{
-							Camera.MoveRight( );
+							ViewCamera.MoveRight( );
 						}
 						break;
 						// Culling
@@ -252,19 +252,19 @@ int main( int argc, char ** argv )
 		CameraDiffs.y = (BIT_FLOAT32)MousePosition.y - (BIT_FLOAT32)MouseLockPosition.y;
 		if( CameraDiffs.y > 0.0f )
 		{
-			Camera.RotateUp( abs( CameraDiffs.y ) );
+			ViewCamera.RotateUp( abs( CameraDiffs.y ) );
 		}
 		else if( CameraDiffs.y < 0.0f )
 		{
-			Camera.RotateDown( abs( CameraDiffs.y ) );
+			ViewCamera.RotateDown( abs( CameraDiffs.y ) );
 		}
 		if( CameraDiffs.x > 0.0f  )
 		{
-			Camera.RotateRight( abs( CameraDiffs.x ) );
+			ViewCamera.RotateRight( abs( CameraDiffs.x ) );
 		}
 		else if( CameraDiffs.x < 0.0f )
 		{
-			Camera.RotateLeft( abs( CameraDiffs.x ) );
+			ViewCamera.RotateLeft( abs( CameraDiffs.x ) );
 		}
 
 
@@ -280,9 +280,9 @@ int main( int argc, char ** argv )
 		pShadowDepthTexture->Bind( 0 );
 
 		// Update the camera if needed
-		if( Camera.Update( DeltaTime ) )
+		if( ViewCamera.Update( DeltaTime ) )
 		{
-			pLevelShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", Camera.GetMatrix( ) );
+			pLevelShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", ViewCamera.GetMatrix( ) );
 		}
 
 		// Render the model
@@ -445,7 +445,7 @@ BIT_UINT32 CreateWindow( )
 		/* Bit::Window::Style_Resize | */ Bit::Window::Style_Close;
 
 	// Open the window
-	if( pWindow->Open( WindowSize, 32, "Hello World", Style ) != BIT_OK )
+	if( pWindow->Open( WindowSize, 32, "Bit Engine - Shadow Mapping", Style ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not open the window\n" );
 		return BIT_ERROR;
@@ -456,7 +456,6 @@ BIT_UINT32 CreateWindow( )
 	MouseLockPosition = WindowPosition + ( pWindow->GetSize( ) / 2 );
 
 	// Change the window's title
-	pWindow->SetTitle( "Cool. We can now change the window title. Testing swedish characters: åäö ÅÄÖ" );
 	pWindow->ShowCursor( BIT_FALSE );
 	pWindow->SetCursorPosition( MouseLockPosition );
 
@@ -544,11 +543,11 @@ BIT_UINT32 LoadMatrices( )
 
 void InitializeCamera( )
 {
-	Camera.SetPosition( LightPosition );
-	Camera.SetDirection( LightDirection );
-	Camera.SetMovementSpeed( 40.0f );
-	Camera.SetEyeSpeed( 15.0f );
-	Camera.UpdateMatrix( );
+	ViewCamera.SetPosition( LightPosition );
+	ViewCamera.SetDirection( LightDirection );
+	ViewCamera.SetMovementSpeed( 40.0f );
+	ViewCamera.SetEyeSpeed( 15.0f );
+	ViewCamera.UpdateMatrix( );
 
 	/*
 		Pos:  23.960457 12.673248 8.509544
@@ -557,7 +556,7 @@ void InitializeCamera( )
 
 	// Set the matrix to the matrix manager
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
-	Bit::MatrixManager::SetMatrix( Camera.GetMatrix( ) );
+	Bit::MatrixManager::SetMatrix( ViewCamera.GetMatrix( ) );
 
 }
 

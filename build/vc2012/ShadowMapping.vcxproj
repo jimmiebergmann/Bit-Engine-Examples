@@ -74,9 +74,11 @@
     <LibraryPath>..\..\Bit-Engine\lib\Windows\32\Static;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">
-    <OutDir>$(SolutionDir)/../../bin/Windows/32\</OutDir>
-    <IntDir>$(SolutionDir)/../../obj/Windows/32/vc2008/ShadowMapping/Static_Release\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\Windows\32\</OutDir>
+    <IntDir>$(SolutionDir)..\..\obj\Windows\32\vc2012\ShadowMapping\Static_Release\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>..\..\Bit-Engine\lib\Windows\32\Static;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\..\Bit-Engine\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dynamic Debug|Win32'">
     <OutDir>$(SolutionDir)/../../bin/Windows/32\</OutDir>

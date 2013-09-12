@@ -74,9 +74,11 @@
     <TargetName>$(ProjectName)-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">
-    <OutDir>$(SolutionDir)/../../bin/Windows/32\</OutDir>
-    <IntDir>$(SolutionDir)/../../obj/Windows/32/vc2008/Sponza/Static_Release\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\Windows\32\</OutDir>
+    <IntDir>$(SolutionDir)..\..\obj\Windows\32\vc2012\Sponza\Static_Release\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\..\..\Bit-Engine\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\Bit-Engine\lib\Windows\32\Static;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dynamic Debug|Win32'">
     <OutDir>$(SolutionDir)/../../bin/Windows/32\</OutDir>
@@ -112,7 +114,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../Sponza/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../Sponza/include;../../Common/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;BIT_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -176,12 +178,14 @@
     <ClCompile Include="..\..\Common\source\GUIManager.cpp" />
     <ClCompile Include="..\..\Common\source\GUISlider.cpp" />
     <ClCompile Include="..\..\Sponza\source\Main.cpp" />
+    <ClCompile Include="..\..\Sponza\source\Settings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\include\Camera.hpp" />
     <ClInclude Include="..\..\Common\include\GUICheckbox.hpp" />
     <ClInclude Include="..\..\Common\include\GUIManager.hpp" />
     <ClInclude Include="..\..\Common\include\GUISlider.hpp" />
+    <ClInclude Include="..\..\Sponza\include\Settings.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -522,7 +522,7 @@ BIT_UINT32 CreateWindow( )
 	}
 
 	// Change the window's title
-	pWindow->SetTitle( "Linux Test." );
+	pWindow->SetTitle( "Bit Engine - First Triangle" );
 
 
     // Create a keyboard

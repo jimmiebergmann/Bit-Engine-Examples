@@ -74,9 +74,11 @@
     <TargetName>$(ProjectName)-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">
-    <OutDir>$(SolutionDir)/../../bin/Windows/32\</OutDir>
-    <IntDir>$(SolutionDir)/../../obj/Windows/32/vc2008/FirstTriangle/Static_Release\</IntDir>
+    <OutDir>$(SolutionDir)..\..\bin\Windows\32\</OutDir>
+    <IntDir>$(SolutionDir)..\..\obj\Windows\32\vc2012\FirstTriangle\Static_Release\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>..\..\Bit-Engine\lib\Windows\32\Static;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\..\Bit-Engine\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dynamic Debug|Win32'">
     <OutDir>$(SolutionDir)/../../bin/Windows/32\</OutDir>
@@ -114,7 +116,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>../../FirstTriangle/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../FirstTriangle/include;../../Common/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;BIT_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
