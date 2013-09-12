@@ -286,12 +286,7 @@ int main( int argc, char ** argv )
 			PreviousMousePosition = MousePosition;
 
 			// Rotate the camera
-<<<<<<< HEAD
 			ViewCamera.Rotate( MouseDiff );
-=======
-			Camera.Rotate( MouseDiff );
-			//bitTrace( "MouseDiff: %i %i", MouseDiff.x, MouseDiff.y );
->>>>>>> 9de27ff64717ffc8ac992ad8a9c4f67811ce7317
 		}
 
 

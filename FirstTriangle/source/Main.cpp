@@ -135,44 +135,23 @@ int main( int argc, char ** argv )
 		}
 
 		// Update the keyboard
-<<<<<<< HEAD:FirstTriangle/source/Main.cpp
 		/*pKeyboard->Update( );
 		pMouse->Update( );
-
-=======
-		//pKeyboard->Update( );
-		//pMouse->Update( );
-/*
-		// Button test
-		if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_1 ) )
-		{
-            bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_1 );
-		}
-		if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_2 ) )
-		{
-            bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_2 );
-		}
-		if( pMouse->ButtonIsJustPressed( Bit::Mouse::Button_3 ) )
-		{
-            bitTrace( "Mouse press 2:  %i \n", Bit::Mouse::Button_3 );
-		}
-*/
->>>>>>> 9de27ff64717ffc8ac992ad8a9c4f67811ce7317:LinuxTest/source/Main.cpp
 
         // Key test
 		if( pKeyboard->KeyIsDown( Bit::Keyboard::Key_A ) )
 	    {
 	        bitTrace( "Keyboard 2:  A \n" );
-	    }*/
+	    }
 
-		/*for( BIT_MEMSIZE i = 0; i < Bit::Keyboard::Key_Count; i++ )
+		for( BIT_MEMSIZE i = 0; i < Bit::Keyboard::Key_Count; i++ )
 		{
 		    if( pKeyboard->KeyIsJustReleased( (Bit::Keyboard::eKey)i ) )
 		    {
 		        bitTrace( "Keyboard 2:  %i \n", i );
 		    }
 
-		}*/
+		}
 
 		/*if( pKeyboard->KeyIsJustPressed( Bit::Keyboard::Key_Escape ) )
 	    {
