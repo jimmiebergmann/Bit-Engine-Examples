@@ -98,7 +98,7 @@ int main( int argc, char ** argv )
 		DeltaTime = Timer.GetLapsedTime( );
 		Timer.Start( );
 
-		bitTrace( "FPS: %f\n", 1.0f / DeltaTime );
+		//bitTrace( "FPS: %f\n", 1.0f / DeltaTime );
 
 		// Do evenets
 		pWindow->Update( );
@@ -169,7 +169,14 @@ int main( int argc, char ** argv )
 							ViewCamera.MoveRight( );
 						}
 						break;
+					}
 
+				}
+				break;
+				case Bit::Event::KeyJustPressed:
+				{
+					switch( Event.Key )
+					{
 						// Culling
 						case Bit::Keyboard::Key_Z:
 						{
@@ -215,9 +222,7 @@ int main( int argc, char ** argv )
 							return CloseApplication( 0 );
 						}
 						break;
-
 					}
-
 				}
 				break;
 				case Bit::Event::KeyJustReleased:
@@ -237,7 +242,7 @@ int main( int argc, char ** argv )
 					}
 				}
 				break;
-				case Bit::Event::ButtonPressed:
+				case Bit::Event::ButtonJustPressed:
 				{
 					// Update the GUI
 					GUI->Update( Event );
@@ -250,11 +255,11 @@ int main( int argc, char ** argv )
 						// Set the previous mouse position as well if we just pressed the mouse button
 						if( !HoldingDownMouse )
 						{
+						    HoldingDownMouse = BIT_TRUE;
 							PreviousMousePosition = Event.MousePosition;
 						}
-
-						HoldingDownMouse = BIT_TRUE;
 					}
+
 				}
 				break;
 				case Bit::Event::ButtonJustReleased:
