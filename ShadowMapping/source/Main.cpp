@@ -621,12 +621,12 @@ BIT_UINT32 LoadLevelData( )
 
 
 	// Load the level textures
-	if( pLevelColorTexture->Load( WindowSize, BIT_RGB, BIT_RGB, BIT_TYPE_UCHAR8, BIT_NULL ) != BIT_OK )
+	if( pLevelColorTexture->Load( WindowSize, Bit::RGB, Bit::RGB, Bit::Type_UChar8, BIT_NULL ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the level color texture\n" );
 		return BIT_ERROR;
 	}
-	if( pLevelDepthTexture->Load( WindowSize, BIT_DEPTH, BIT_DEPTH, BIT_TYPE_FLOAT32, BIT_NULL ) != BIT_OK )
+	if( pLevelDepthTexture->Load( WindowSize, Bit::Depth, Bit::Depth, Bit::Type_Float32, BIT_NULL ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the level depth texture\n" );
 		return BIT_ERROR;
@@ -857,12 +857,12 @@ BIT_UINT32 LoadFullscreenData( )
 	// SLOW WAY
 
 
-	if( pFullscreenVertexObject->AddVertexBuffer( VertexPositions, 3, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	if( pFullscreenVertexObject->AddVertexBuffer( VertexPositions, 3, Bit::Type_Float32 ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not add vertex position buffer to the fullscreen vertex object\n" );
 		return BIT_ERROR;
 	}
-	if( pFullscreenVertexObject->AddVertexBuffer( VertexTextures, 2, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	if( pFullscreenVertexObject->AddVertexBuffer( VertexTextures, 2, Bit::Type_Float32 ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not add vertex texture buffer to the fullscreen vertex object\n" );
 		return BIT_ERROR;
@@ -1012,7 +1012,7 @@ BIT_UINT32 LoadShadowData( )
 	}
 
 	// Load the shadow texture
-	if( pShadowDepthTexture->Load( WindowSize, BIT_DEPTH, BIT_DEPTH, BIT_TYPE_FLOAT32, BIT_NULL ) != BIT_OK )
+	if( pShadowDepthTexture->Load( WindowSize, Bit::Depth, Bit::Depth, Bit::Type_Float32, BIT_NULL ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the shadow texture\n" );
 		return BIT_ERROR;

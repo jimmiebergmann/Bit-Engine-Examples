@@ -640,13 +640,13 @@ BIT_UINT32 LoadRenderData( )
 		0.0f, 1.0f
 	};
 
-	if( pVertexObject->AddVertexBuffer( VertexPositions, 3, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	if( pVertexObject->AddVertexBuffer( VertexPositions, 3, Bit::Type_Float32 ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not add vertex position buffer to the vertex object\n" );
 		return BIT_ERROR;
 	}
 
-	if( pVertexObject->AddVertexBuffer( VertexTextures, 2, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	if( pVertexObject->AddVertexBuffer( VertexTextures, 2, Bit::Type_Float32 ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not add vertex texture buffer to the vertex object\n" );
 		return BIT_ERROR;

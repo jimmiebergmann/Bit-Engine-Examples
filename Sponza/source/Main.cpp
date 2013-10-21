@@ -576,13 +576,13 @@ BIT_UINT32 CreateFullscreenRendering( )
 	}
 
 	// Load the textures
-	if( pColorTexture->Load( SponzaSettings.GetWindowSize( ), BIT_RGB, BIT_RGB, BIT_TYPE_UCHAR8, BIT_NULL ) != BIT_OK )
+	if( pColorTexture->Load( SponzaSettings.GetWindowSize( ), Bit::RGB, Bit::RGB, Bit::Type_UChar8, BIT_NULL ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the fullscreen color texture\n" );
 		return BIT_ERROR;
 	}
 
-	if( pDepthTexture->Load( SponzaSettings.GetWindowSize( ), BIT_DEPTH, BIT_DEPTH, BIT_TYPE_FLOAT32, BIT_NULL ) != BIT_OK )
+	if( pDepthTexture->Load( SponzaSettings.GetWindowSize( ), Bit::Depth, Bit::Depth, Bit::Type_Float32, BIT_NULL ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the fullscreen depth texture\n" );
 		return BIT_ERROR;
@@ -659,12 +659,12 @@ BIT_UINT32 CreateFullscreenRendering( )
 	// SLOW WAY
 
 
-	if( pFullscreenVertexObject->AddVertexBuffer( VertexPositions, 3, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	if( pFullscreenVertexObject->AddVertexBuffer( VertexPositions, 3, Bit::Type_Float32 ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not add vertex position buffer to the fullscreen vertex object\n" );
 		return BIT_ERROR;
 	}
-	if( pFullscreenVertexObject->AddVertexBuffer( VertexTextures, 2, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	if( pFullscreenVertexObject->AddVertexBuffer( VertexTextures, 2, Bit::Type_Float32 ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not add vertex texture buffer to the fullscreen vertex object\n" );
 		return BIT_ERROR;
@@ -694,7 +694,7 @@ BIT_UINT32 CreatePostProcessing( )
 	}
 
 	// Load the bloom effect
-	if( pPostProcessingBloom->Load( 0.15f, 2, 1.0f ) != BIT_OK )
+	if( pPostProcessingBloom->Load( 0.25f, 2, 1.0f ) != BIT_OK )
 	{
 		bitTrace( "[Error] Can not load the bloom post-processing effect.\n" );
 		return BIT_ERROR;

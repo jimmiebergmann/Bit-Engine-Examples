@@ -241,12 +241,12 @@ BIT_UINT32 GUIManager::LoadVertexObject( )
 	// SLOW WAY 
 
 
-	if( m_pVertexObject->AddVertexBuffer( VertexPositions, 3, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	if( m_pVertexObject->AddVertexBuffer( VertexPositions, 3, Bit::Type_Float32 ) != BIT_OK )
 	{
 		bitTrace( "[GUIManager::LoadVertexObject] Can not add vertex position buffer\n" );
 		return BIT_ERROR;
 	}
-	if( m_pVertexObject->AddVertexBuffer( VertexTextures, 2, BIT_TYPE_FLOAT32 ) != BIT_OK )
+	if( m_pVertexObject->AddVertexBuffer( VertexTextures, 2, Bit::Type_Float32 ) != BIT_OK )
 	{
 		bitTrace( "[GUIManager::LoadVertexObject] Can not add vertex texture buffert\n" );
 		return BIT_ERROR;
