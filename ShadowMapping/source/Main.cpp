@@ -515,11 +515,8 @@ BIT_UINT32 LoadMatrices( )
 	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Projection );
 	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 2.0f, 50.0f );
 
-	// View matrix
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
-	Bit::MatrixManager::LoadIdentity( );
-
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Model );
+	// Model view matrix
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_ModelView );
 	Bit::MatrixManager::LoadIdentity( );
 
 	// Bias matrix
@@ -555,7 +552,7 @@ void InitializeCamera( )
 	*/
 
 	// Set the matrix to the matrix manager
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_ModelView );
 	Bit::MatrixManager::SetMatrix( ViewCamera.GetMatrix( ) );
 
 }
@@ -815,7 +812,7 @@ BIT_UINT32 LoadLevelData( )
 	pLevelShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix",
 		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_Projection ) );
 	pLevelShaderProgram->SetUniformMatrix4x4f( "ViewMatrix",
-		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_View ) );
+		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_ModelView ) );
 	pLevelShaderProgram->SetUniformMatrix4x4f( "ShadowViewMatrix", ShadowViewMatrix );
 	pLevelShaderProgram->SetUniform1i( "ShadowTexture", 0 );
 	pLevelShaderProgram->SetUniform3f( "LightPosition", LightPosition.x, LightPosition.y, LightPosition.z );

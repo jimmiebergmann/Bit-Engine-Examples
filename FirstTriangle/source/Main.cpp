@@ -1,5 +1,6 @@
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
+#include <Bit/Graphics/ShaderProgram.hpp>
 #include <Bit/System/Keyboard.hpp>
 #include <Bit/System/Mouse.hpp>
 #include <Bit/Graphics/Image.hpp>
@@ -594,14 +595,9 @@ BIT_UINT32 LoadMatrices( )
 	Bit::MatrixManager::LoadPerspective( 45.0f,(BIT_FLOAT32)WindowSize.x / (BIT_FLOAT32)WindowSize.y, 0.001f, 50.0f );
 
 	// View matrix
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_ModelView );
 	Bit::MatrixManager::LoadIdentity( );
-
-
 	Bit::MatrixManager::LoadLookAt( Bit::Vector3_f32( 0.0f, 0.0f, 3.0f ) , Bit::Vector3_f32( 0.0f, 0.0f, -1.0f ), Bit::Vector3_f32( 0.0f, 1.0f, 0.0f ) );
-
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Model );
-	Bit::MatrixManager::LoadIdentity( );
 
 	return BIT_OK;
 }
@@ -678,12 +674,12 @@ BIT_UINT32 LoadRenderData( )
 		"out vec2 out_Texture; \n"
 
 		"uniform mat4 ProjectionMatrix; \n"
-		"uniform mat4 ViewMatrix; \n"
+		"uniform mat4 ModelViewMatrix; \n"
 
 		"void main(void) \n"
 		"{ \n"
 		"	out_Texture = Texture; \n"
-		"	gl_Position = ProjectionMatrix * ViewMatrix * vec4( Position, 1.0 ); \n"
+		"	gl_Position = ProjectionMatrix * ModelViewMatrix * vec4( Position, 1.0 ); \n"
 		"} \n";
 
 	static const std::string FragmentSource =
@@ -765,7 +761,7 @@ BIT_UINT32 LoadRenderData( )
 	pShaderProgram->Bind( );
 
 	pShaderProgram->SetUniformMatrix4x4f( "ProjectionMatrix", Bit::MatrixManager::GetProjectionMatrix( ) );
-	pShaderProgram->SetUniformMatrix4x4f( "ViewMatrix", Bit::MatrixManager::GetViewMatrix( ) );
+	pShaderProgram->SetUniformMatrix4x4f( "ModelViewMatrix", Bit::MatrixManager::GetModelViewMatrix( ) );
 	pShaderProgram->SetUniform1i( "ColorTexture", 0 );
 
 	pShaderProgram->Unbind( );

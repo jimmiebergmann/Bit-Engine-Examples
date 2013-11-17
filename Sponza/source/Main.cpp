@@ -1,6 +1,9 @@
 #include <Bit/System.hpp>
 #include <Bit/Window/Window.hpp>
 #include <Bit/Graphics/GraphicDevice.hpp>
+#include <Bit/Graphics/ShaderProgram.hpp>
+#include <Bit/Graphics/FrameBuffer.hpp>
+#include <Bit/Graphics/PostProcessingBloom.hpp>
 #include <Bit/System/Timer.hpp>
 #include <Bit/System/MatrixManager.hpp>
 #include <Bit/System/ResourceManager.hpp>
@@ -466,10 +469,7 @@ void InitializeMatrixManager( )
 	Bit::MatrixManager::LoadPerspective( 45.0f, (BIT_FLOAT32)SponzaSettings.GetWindowSize( ).x / (BIT_FLOAT32)SponzaSettings.GetWindowSize( ).y, 2.0f, 4000.0f );
 
 	// Model view
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
-	Bit::MatrixManager::LoadIdentity( );
-
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_Model );
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_ModelView );
 	Bit::MatrixManager::LoadIdentity( );
 }
 
@@ -484,7 +484,7 @@ void InitializeCamera( )
 	ViewCamera.UpdateMatrix( );
 
 	// Set the matrix to the matrix manager
-	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_View );
+	Bit::MatrixManager::SetMode( Bit::MatrixManager::Mode_ModelView );
 	Bit::MatrixManager::SetMatrix( ViewCamera.GetMatrix( ) );
 }
 
@@ -921,7 +921,7 @@ BIT_UINT32 CreateModelShader( )
 	pShaderProgram_Model->SetUniformMatrix4x4f( "ProjectionMatrix",
 		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_Projection ) );
 	pShaderProgram_Model->SetUniformMatrix4x4f( "ViewMatrix",
-		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_View ) );
+		Bit::MatrixManager::GetMatrix( Bit::MatrixManager::Mode_ModelView ) );
 	pShaderProgram_Model->SetUniform3f( "LightPosition", 1.0f, 100.0f, 0.0f );
 	pShaderProgram_Model->SetUniform1i( "UseNormalMapping", SponzaSettings.GetUseNormalMapping( ) );
 	pShaderProgram_Model->Unbind( );
