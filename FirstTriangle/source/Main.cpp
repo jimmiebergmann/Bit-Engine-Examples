@@ -439,8 +439,6 @@ int main( int argc, char ** argv )
 	// We are done
 	bitTrace( "Closing the program.\n" );
 	return CloseApplication( 0 );
-
-	return 0;
 }
 
 
