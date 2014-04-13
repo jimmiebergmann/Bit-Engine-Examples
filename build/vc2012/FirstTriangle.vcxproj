@@ -70,14 +70,14 @@
     <IntDir>$(SolutionDir)..\..\obj\Windows\32\vc2012\FirstTriangle\Static_Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\..\Bit-Engine\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\Bit-Engine\lib\Windows\32\Static;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Bit-Engine\lib;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">
     <OutDir>$(SolutionDir)..\..\bin\Windows\32\</OutDir>
     <IntDir>$(SolutionDir)..\..\obj\Windows\32\vc2012\FirstTriangle\Static_Release\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>..\..\Bit-Engine\lib\Windows\32\Static;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Bit-Engine\lib;$(LibraryPath)</LibraryPath>
     <IncludePath>..\..\..\Bit-Engine\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dynamic Debug|Win32'">
@@ -85,18 +85,20 @@
     <IntDir>$(SolutionDir)/../../obj/Windows/32/vc2008/FirstTriangle/Dynamic_Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\..\Bit-Engine\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\jimmie\Documents\GitHub\Bit-Engine\lib\Windows\32\Dynamic;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Bit-Engine\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dynamic Release|Win32'">
     <OutDir>$(SolutionDir)/../../bin/Windows/32\</OutDir>
     <IntDir>$(SolutionDir)/../../obj/Windows/32/vc2008/FirstTriangle/Dynamic_Release\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>..\..\..\Bit-Engine\include;$(IncludePath)</IncludePath>
+    <LibraryPath>..\..\..\Bit-Engine\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../../FirstTriangle/include;../../Common/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;BIT_STATIC_LIB</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;BIT_STATIC</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -105,7 +107,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>../../../Bit-Engine/lib/Windows/32/Static/bit-graphics-d.lib;../../../Bit-Engine/lib/Windows/32/Static/bit-system-d.lib;../../../Bit-Engine/lib/Windows/32/Static/bit-window-d.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bit-system-s-d.lib;bit-window-s-d.lib;bit-graphics-s-d.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)-d.exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -117,7 +119,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>../../FirstTriangle/include;../../Common/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;BIT_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;BIT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
@@ -125,7 +127,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>../../../Bit-Engine/lib/Windows/32/Static/bit-graphics.lib;../../../Bit-Engine/lib/Windows/32/Static/bit-system.lib;../../../Bit-Engine/lib/Windows/32/Static/bit-window.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bit-system-s.lib;bit-window-s.lib;bit-graphics-s.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -146,7 +148,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>../../../Bit-Engine/lib/Windows/32/Dynamic/bit-graphics-d.lib;../../../Bit-Engine/lib/Windows/32/Dynamic/bit-system-d.lib;../../../Bit-Engine/lib/Windows/32/Dynamic/bit-window-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bit-system-d.lib;bit-window-d.lib;bit-graphics-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)-d.exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -166,7 +168,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>../../../Bit-Engine/lib/Windows/32/Dynamic/bit-graphics.lib;../../../Bit-Engine/lib/Windows/32/Dynamic/bit-system.lib;../../../Bit-Engine/lib/Windows/32/Dynamic/bit-window.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bit-system.lib;bit-window.lib;bit-graphics.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
