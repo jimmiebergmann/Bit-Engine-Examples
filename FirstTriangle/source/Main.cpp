@@ -1,7 +1,7 @@
 #include <Bit/Window/RenderWindow.hpp>
 #include <Bit/Graphics/OpenGL/OpenGLGraphicDevice.hpp>
-#include <Bit/Graphics/VertexArrayObject.hpp>
-#include <Bit/Graphics/VertexBufferObject.hpp>
+#include <Bit/Graphics/VertexArray.hpp>
+#include <Bit/Graphics/VertexBuffer.hpp>
 #include <Bit/Graphics/ShaderProgram.hpp>
 #include <Bit/Graphics/Shader.hpp>
 #include <Bit/Graphics/Texture.hpp>
@@ -21,9 +21,9 @@ Bit::RenderWindow * pWindow = NULL;
 Bit::GraphicDevice * pGraphicDevice = NULL;
 
 // Render data
-Bit::VertexBufferObject * pPositionVBO = NULL;
-Bit::VertexBufferObject * pColorVBO = NULL;
-Bit::VertexArrayObject * pVertexArray = NULL;
+Bit::VertexBuffer * pPositionVBO = NULL;
+Bit::VertexBuffer * pColorVBO = NULL;
+Bit::VertexArray * pVertexArray = NULL;
 Bit::Texture * pTexture = NULL;
 Bit::ShaderProgram * pShaderProgram = NULL;
 Bit::Shader * pVertexShader = NULL;
@@ -254,7 +254,7 @@ Bit::Bool CreateGraphicDevice( )
 	pGraphicDevice = new Bit::OpenGLGraphicDevice;
 
 	// Open the graphic device
-	if( pGraphicDevice->Open( *pWindow, Bit::GraphicDevice::Version( 3, 1 ) ) != true )
+	if( pGraphicDevice->Open( *pWindow, Bit::Version( 3, 1 ) ) != true )
 	{
 		std::cout <<  "[Error] Can not open the graphic device\n";
 		return false;
@@ -311,7 +311,7 @@ Bit::Bool LoadMatrices( )
 Bit::Bool LoadRenderData( )
 {
 	// Create the position vertex buffer
-	if( ( pPositionVBO = pGraphicDevice->CreateVertexBufferObject( ) )== NULL )
+	if( ( pPositionVBO = pGraphicDevice->CreateVertexBuffer( ) )== NULL )
 	{
 		std::cout << "[Error] Can not create the position vertex buffer.\n";
 		return false;
@@ -332,7 +332,7 @@ Bit::Bool LoadRenderData( )
 
 
 	// Create the color vertex buffer
-	if( ( pColorVBO = pGraphicDevice->CreateVertexBufferObject( ) )== NULL )
+	if( ( pColorVBO = pGraphicDevice->CreateVertexBuffer( ) )== NULL )
 	{
 		std::cout << "[Error] Can not create the color vertex buffer.\n";
 		return false;
@@ -352,7 +352,7 @@ Bit::Bool LoadRenderData( )
 	pColorVBO->Load( 12 * 4, vertexColor );
 
 	// Create the vertex array
-	if( ( pVertexArray = pGraphicDevice->CreateVertexArrayObject( ) )== NULL )
+	if( ( pVertexArray = pGraphicDevice->CreateVertexArray( ) )== NULL )
 	{
 		std::cout << "[Error] Can not create the vertex array.\n";
 		return false;

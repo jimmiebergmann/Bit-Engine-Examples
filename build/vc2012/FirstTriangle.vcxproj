@@ -69,7 +69,7 @@
     <OutDir>$(SolutionDir)..\..\bin\Windows\32\</OutDir>
     <IntDir>$(SolutionDir)..\..\obj\Windows\32\vc2012\FirstTriangle\Static_Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\..\..\Bit-Engine\include;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\..\Bit-Engine\include;..\..\..\Bit-Engine\extlibs\include;$(IncludePath)</IncludePath>
     <LibraryPath>..\..\..\Bit-Engine\lib;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)-d</TargetName>
   </PropertyGroup>

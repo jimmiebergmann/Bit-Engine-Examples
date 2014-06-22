@@ -73,7 +73,7 @@
     <IntDir>$(SolutionDir)..\..\obj\Windows\32\vc2012\Sound\Static_Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\..\Bit-Engine\extlibs\include;..\..\..\Bit-Engine\include;$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\..\Bit-Engine\lib\Windows\32\Static;..\..\..\Bit-Engine\extlibs\libs;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\..\Bit-Engine\lib;..\..\..\Bit-Engine\extlibs\libs;$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)-d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static Release|Win32'">
@@ -99,7 +99,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>../../Sound/include;../../Common/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;BIT_STATIC_LIB</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;BIT_STATIC</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -108,7 +108,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>../../../Bit-Engine/lib/Windows/32/Static/bit-audio-d.lib;../../../Bit-Engine/lib/Windows/32/Static/bit-system-d.lib;AL/Win32/OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>bit-audio-s-d.lib;bit-system-s-d.lib;AL/Win32/OpenAL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(ProjectName)-d.exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>

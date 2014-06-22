@@ -1,145 +1,137 @@
-#include <Bit/Audio/AudioDevice.hpp>
-#include <Bit/Audio/AudioBuffer.hpp>
-#include <Bit/Audio/Audio.hpp>
+#include <Bit/Audio/OpenAL/OpenALAudioDevice.hpp>
+#include <Bit/Audio/SoundBuffer.hpp>
+#include <Bit/Audio/Sound.hpp>
 #include <Bit/System/Keyboard.hpp>
-#include <Bit/System.hpp>
 #include <Bit/System/Vector3.hpp>
-#include <Bit/System/Debugger.hpp>
+#include <Bit/System/Sleep.hpp>
+#include <iostream>
 #include <Bit/System/MemoryLeak.hpp>
 
 // Audio varaibles
-Bit::AudioDevice * pAudioDevice = BIT_NULL;
-Bit::Audio * pAudio = BIT_NULL;
-Bit::Keyboard * pKeyboard = BIT_NULL;
+Bit::AudioDevice * pAudioDevice = NULL;
+Bit::Sound * pSound = NULL;
+Bit::SoundBuffer * pSoundBuffer = NULL;
+Bit::Keyboard keyboard;
 
 // Settings
-const std::string SoundFilePath = "../../../Data/PowerUp1.wav";
+const std::string soundFilePath = "../../../Data/PowerUp1.wav";
 
 
 // Global functions
 int CloseApplication( const int p_Code );
-BIT_UINT32 LoadAudio( );
-BIT_UINT32 LoadInput( );
+Bit::Bool LoadAudio( );
 
 // Main function
 int main( int argc, char ** argv )
 {
 	// Initialize the memory leak detector for Win32 only (ignored by default in linux)
-	bitInitMemoryLeak( BIT_NULL );
-
-	// Setting the absolute path in order to read files.
-	Bit::SetAbsolutePath( argv[ 0 ] );
+	BitInitMemoryLeak( NULL );
 
 	// Initialize the application
-	if( LoadAudio( ) != BIT_OK ||
-		LoadInput( ) != BIT_OK )
+	if( LoadAudio( ) != true )
 	{
 		return CloseApplication( 0 );
 	}
 
+	std::cout << "Press 'P' to play sound.\nPress 'Escape' to close.\n";
 
+	// Main loop.
 	while( 1 )
 	{
 
 		// Update the keyboard
-		pKeyboard->Update( );
+		keyboard.Update( );
 
 		// Should we exit the program?
-		if( pKeyboard->KeyIsJustReleased( Bit::Keyboard::Key_Escape ) )
+		if( keyboard.KeyIsJustReleased( Bit::Keyboard::Escape ) )
 		{
 			break;
 		}
 
 		// Play sound
-		if( pKeyboard->KeyIsJustReleased( Bit::Keyboard::Key_P ) )
+		if( keyboard.KeyIsJustReleased( Bit::Keyboard::P ) )
 		{
-			pAudio->Play( );
+			pSound->Play( );
 		}
 
 	}
 
 	// We are done
-	bitTrace( "Closing the program.\n" );
 	return CloseApplication( 0 );
 }
 
 int CloseApplication( const int p_Code )
 {
-	if( pAudio )
+	if( pSoundBuffer )
 	{
-		delete pAudio;
-		pAudio = BIT_NULL;
+		delete pSoundBuffer;
+		pSoundBuffer = NULL;
+	}
+
+	if( pSound )
+	{
+		delete pSound;
+		pSound = NULL;
 	}
 	
 	if( pAudioDevice )
 	{
 		delete pAudioDevice;
-		pAudioDevice = BIT_NULL;
-	}
-
-	if( pKeyboard )
-	{
-		delete pKeyboard;
-		pKeyboard = BIT_NULL;
+		pAudioDevice = NULL;
 	}
 
 	// Return the code
+	std::cout << "Closing the program.";
+	Bit::Sleep( Bit::Seconds( 0.66f ) );
+	std::cout << ".";
+	Bit::Sleep( Bit::Seconds( 0.66f ) );
+	std::cout << ".";
+	Bit::Sleep( Bit::Seconds( 0.66f ) );
 	return p_Code;
 }
 
-BIT_UINT32 LoadAudio( )
+Bit::Bool LoadAudio( )
 {
 	// Create the audio device
-	if( ( pAudioDevice = Bit::CreateAudioDevice( ) ) == BIT_NULL )
-	{
-		bitTrace( "[Error] Can not create the audio device\n" );
-		return BIT_ERROR;
-	}
+	 pAudioDevice = new Bit::OpenALAudioDevice;
 
 	// Open the audio device
-	if( pAudioDevice->Open( ) != BIT_OK )
+	if( pAudioDevice->Open( ) != true )
 	{
-		bitTrace( "[Error] Can not open the audio device\n" );
-		return BIT_ERROR;
+		std::cout << "[Error] Can not open the audio device\n";
+		return false;
 	}
 	pAudioDevice->SetGlobalVolume( 1.0f );
-	pAudioDevice->SetListenerPosition( Bit::Vector3_f32( 0.0f, 0.0f, 0.0f ) );
-	pAudioDevice->SetListenerTarget( Bit::Vector3_f32( 0.0f, 0.0f, 1.0f ) );
-	pAudioDevice->SetListenerVelocity( Bit::Vector3_f32( 0.0f, 0.0f, 0.0f ) );
+	pAudioDevice->SetListenerPosition( Bit::Vector3f32( 0.0f, 0.0f, 0.0f ) );
+	pAudioDevice->SetListenerTarget( Bit::Vector3f32( 0.0f, 0.0f, 1.0f ) );
+	pAudioDevice->SetListenerVelocity( Bit::Vector3f32( 0.0f, 0.0f, 0.0f ) );
 
-	// Load the audio buffer
-	Bit::AudioBuffer AudioBuffer;
-	if( AudioBuffer.Read( Bit::GetAbsolutePath( SoundFilePath ).c_str( ) ) != BIT_OK )
+	// Create the audio buffer
+	if( ( pSoundBuffer = pAudioDevice->CreateSoundBuffer( ) ) == NULL )
 	{
-		bitTrace( "[Error] Can not open the sound file\n" );
-		return BIT_ERROR;
+		std::cout << "[Error] Can not create the sound buffer.\n";
+		return false;
+	}
+	if( pSoundBuffer->LoadFromFile( soundFilePath ) != true )
+	{
+		std::cout << "[Error] Can not load the sound buffer from the given filepath.\n";
+		return false;
 	}
 
 	// Create the sound
-	if( ( pAudio = pAudioDevice->CreateAudio( ) ) == BIT_NULL )
+	if( ( pSound = pAudioDevice->CreateSound( ) ) == NULL )
 	{
-		bitTrace( "[Error] Can not create the audio \n" );
-		return BIT_ERROR;
+		std::cout << "[Error] Can not create the sound.\n";
+		return false;
 	}
 
 	// Load the sound
-	if( pAudio->Load( AudioBuffer ) != BIT_OK )
+	if( pSound->LoadFromBuffer( *pSoundBuffer ) != true )
 	{
-		bitTrace( "[Error] Can not load the sound \n" );
-		return BIT_ERROR;
+		std::cout << "[Error] Can not load the sound from the given sound buffer.\n";
+		return false;
 	}
-	pAudio->SetRelative( BIT_TRUE );
+	pSound->SetRelative( true );
 
-	return BIT_OK;
-}
-
-BIT_UINT32 LoadInput( )
-{
-	if( ( pKeyboard = Bit::CreateKeyboard( ) ) == BIT_NULL )
-	{
-		bitTrace( "[Error] Can not create the keyboard.\n" );
-		return BIT_ERROR;
-	}
-
-	return BIT_OK;
+	return true;
 }
